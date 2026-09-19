@@ -1,0 +1,1082 @@
+<!DOCTYPE html>
+
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>TeamForge AI - Retro Arcade Command Console</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700;800&amp;family=Press+Start+2P&amp;display=swap" rel="stylesheet"/>
+<style>
+    * {
+      box-sizing: border-box;
+      text-transform: uppercase !important;
+    }
+
+    body {
+      background-color: #000000;
+      color: #FFFFFF;
+      font-family: 'JetBrains Mono', monospace;
+      margin: 0;
+      padding: 0;
+      overflow-x: hidden;
+    }
+
+    .font-arcade {
+      font-family: 'Press Start 2P', monospace;
+    }
+
+    .font-mono {
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    /* Scanlines Overlay */
+    .scanlines {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      pointer-events: none;
+      z-index: 999;
+      background: linear-gradient(
+        rgba(18, 16, 16, 0) 50%, 
+        rgba(0, 0, 0, 0.45) 50%
+      ), linear-gradient(
+        90deg,
+        rgba(255, 0, 0, 0.03),
+        rgba(0, 255, 0, 0.01),
+        rgba(0, 255, 0, 0.03)
+      );
+      background-size: 100% 4px, 6px 100%;
+    }
+
+    /* Glows and Borders */
+    .border-glow-cyan {
+      border: 2px solid #00FFFF;
+      box-shadow: 0 0 8px #00FFFF, 0 0 20px rgba(0, 255, 255, 0.6);
+    }
+
+    .border-glow-magenta {
+      border: 2px solid #FF00FF;
+      box-shadow: 0 0 8px #FF00FF, 0 0 20px rgba(255, 0, 255, 0.6);
+    }
+
+    .border-glow-gold {
+      border: 2px solid #FFD700;
+      box-shadow: 0 0 8px #FFD700, 0 0 20px rgba(255, 215, 0, 0.6);
+    }
+
+    .border-glow-green {
+      border: 2px solid #00FF41;
+      box-shadow: 0 0 8px #00FF41, 0 0 16px rgba(0, 255, 65, 0.5);
+    }
+
+    .text-glow-cyan {
+      color: #00FFFF;
+      text-shadow: 0 0 8px #00FFFF, 0 0 16px rgba(0, 255, 255, 0.7);
+    }
+
+    .text-glow-magenta {
+      color: #FF00FF;
+      text-shadow: 0 0 8px #FF00FF, 0 0 16px rgba(255, 0, 255, 0.7);
+    }
+
+    .text-glow-green {
+      color: #00FF41;
+      text-shadow: 0 0 8px #00FF41;
+    }
+
+    .text-glow-gold {
+      color: #FFD700;
+      text-shadow: 0 0 8px #FFD700, 0 0 16px rgba(255, 215, 0, 0.8);
+    }
+
+    /* Tron Perspective Neon Grid */
+    .tron-grid {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      width: 100%;
+      height: 450px;
+      perspective: 350px;
+      overflow: hidden;
+      pointer-events: none;
+      z-index: 1;
+      opacity: 0.85;
+      mask-image: linear-gradient(to top, rgba(0,0,0,1) 30%, rgba(0,0,0,0) 100%);
+      -webkit-mask-image: linear-gradient(to top, rgba(0,0,0,1) 30%, rgba(0,0,0,0) 100%);
+    }
+
+    .tron-grid-inner {
+      position: absolute;
+      width: 200%;
+      left: -50%;
+      height: 100%;
+      transform: rotateX(65deg);
+      transform-origin: bottom center;
+      background-size: 50px 50px;
+      background-image: 
+        linear-gradient(to right, rgba(0, 255, 255, 0.45) 1px, transparent 1px),
+        linear-gradient(to bottom, rgba(0, 255, 255, 0.45) 1px, transparent 1px);
+      animation: grid-scroll 8s linear infinite;
+      box-shadow: 0 0 30px rgba(0, 255, 255, 0.4) inset;
+    }
+
+    @keyframes grid-scroll {
+      0% { transform: rotateX(65deg) translateY(0); }
+      100% { transform: rotateX(65deg) translateY(50px); }
+    }
+
+    /* Pixel Art Buttons */
+    .btn-pixel-primary {
+      background-color: #00FFFF;
+      color: #000000;
+      border: 2px solid #000000;
+      box-shadow: 4px 4px 0px #00FFFF, 4px 4px 12px rgba(0, 255, 255, 0.5);
+      transition: all 0.1s ease;
+    }
+    .btn-pixel-primary:hover {
+      transform: translate(-2px, -2px);
+      box-shadow: 6px 6px 0px #00FFFF, 0 0 20px #00FFFF;
+    }
+    .btn-pixel-primary:active {
+      transform: translate(2px, 2px);
+      box-shadow: 2px 2px 0px #00FFFF;
+    }
+
+    .btn-pixel-secondary {
+      background-color: transparent;
+      color: #FF00FF;
+      border: 2px solid #FF00FF;
+      box-shadow: 4px 4px 0px #FF00FF, 0 0 12px rgba(255, 0, 255, 0.4);
+      transition: all 0.1s ease;
+    }
+    .btn-pixel-secondary:hover {
+      background-color: rgba(255, 0, 255, 0.1);
+      transform: translate(-2px, -2px);
+      box-shadow: 6px 6px 0px #FF00FF, 0 0 22px #FF00FF;
+    }
+    .btn-pixel-secondary:active {
+      transform: translate(2px, 2px);
+      box-shadow: 2px 2px 0px #FF00FF;
+    }
+
+    /* Cards with hover shift */
+    .powerup-card {
+      border: 2px solid #00FFFF;
+      box-shadow: 0 0 10px rgba(0, 255, 255, 0.4);
+      background-color: #000000;
+      transition: all 0.25s cubic-bezier(0.2, 0.8, 0.2, 1);
+    }
+    .powerup-card:hover {
+      border-color: #FF00FF;
+      box-shadow: 0 0 18px #FF00FF, 0 0 35px rgba(255, 0, 255, 0.6);
+      transform: translateY(-4px);
+    }
+    .powerup-card:hover .card-title {
+      color: #FF00FF;
+      text-shadow: 0 0 8px #FF00FF;
+    }
+
+    /* Animations */
+    @keyframes slow-blink {
+      0%, 49% { opacity: 1; }
+      50%, 100% { opacity: 0.2; }
+    }
+    .animate-blink-slow {
+      animation: slow-blink 2s infinite ease-in-out;
+    }
+
+    @keyframes coin-flash {
+      0%, 49% { opacity: 1; text-shadow: 0 0 15px #FF00FF, 0 0 30px #FF00FF; }
+      50%, 100% { opacity: 0.15; text-shadow: none; }
+    }
+    .animate-coin-flash {
+      animation: coin-flash 1s steps(1) infinite;
+    }
+
+    @keyframes cursor-blink {
+      0%, 49% { opacity: 1; }
+      50%, 100% { opacity: 0; }
+    }
+    .animate-cursor {
+      animation: cursor-blink 0.8s infinite;
+    }
+
+    @keyframes ticker-scroll {
+      0% { transform: translateX(0%); }
+      100% { transform: translateX(-50%); }
+    }
+    .animate-ticker {
+      display: inline-flex;
+      white-space: nowrap;
+      animation: ticker-scroll 24s linear infinite;
+    }
+    .animate-ticker:hover {
+      animation-play-state: paused;
+    }
+
+    /* CRT Monitor Styling */
+    .crt-monitor-case {
+      background: #111417;
+      border: 4px solid #1e293b;
+      box-shadow: 
+        inset 0 0 20px #000, 
+        0 0 0 2px #00FFFF, 
+        0 0 20px rgba(0, 255, 255, 0.35);
+    }
+
+    .crt-bezel {
+      border: 8px solid #08090a;
+      background: #000c05;
+      box-shadow: inset 0 0 30px rgba(0, 255, 65, 0.15);
+    }
+
+    /* Dotted speaker grille */
+    .speaker-grille {
+      background-image: radial-gradient(#00FFFF 15%, transparent 16%);
+      background-size: 8px 8px;
+    }
+
+    /* Custom terminal scroll styling */
+    .terminal-scroll::-webkit-scrollbar {
+      width: 4px;
+    }
+    .terminal-scroll::-webkit-scrollbar-track {
+      background: #000c05;
+    }
+    .terminal-scroll::-webkit-scrollbar-thumb {
+      background: #00FF41;
+    }
+
+    /* Hide scrollbar for clean arcade maps */
+    .no-scrollbar::-webkit-scrollbar {
+      display: none;
+    }
+    .no-scrollbar {
+      -ms-overflow-style: none;
+      scrollbar-width: none;
+    }
+  </style>
+</head>
+<body class="bg-black text-white relative selection:bg-[#00FFFF] selection:text-black">
+<!-- Scanlines visual simulation -->
+<div class="scanlines"></div>
+<!-- ARCADE CABINET OUTER WRAPPER -->
+<div class="relative min-h-screen flex flex-col justify-between border-x-[6px] sm:border-x-[8px] md:border-x-[12px] border-[#00FFFF] shadow-[0_0_25px_rgba(0,255,255,0.7)] bg-black">
+<!-- TOP ARCADE HEADER BAR -->
+<header class="w-full bg-black border-b-[3px] border-[#00FFFF] shadow-[0_0_15px_#00FFFF] sticky top-0 z-50 px-3 py-2 sm:py-3 md:py-4 flex flex-wrap items-center justify-between gap-2">
+<div class="flex items-center gap-2 sm:gap-3">
+<div class="w-3.5 h-3.5 sm:w-4 sm:h-4 bg-[#00FFFF] shadow-[0_0_8px_#00FFFF] animate-pulse"></div>
+<span class="font-arcade text-[10px] sm:text-xs md:text-sm text-glow-cyan tracking-wider">
+          &gt;&gt;&gt; TEAMFORGE COMMAND SYSTEM v2.0 &lt;&lt;&lt;
+        </span>
+</div>
+<div class="flex flex-wrap items-center gap-2 sm:gap-4 text-[10px] sm:text-xs font-arcade ml-auto">
+<!-- Sound Toggle Button -->
+<button class="interactive-sound px-2 py-1 border border-[#00FFFF] text-[#00FFFF] hover:bg-[#00FFFF] hover:text-black transition-colors shadow-[0_0_6px_#00FFFF] cursor-pointer" id="sound-toggle-btn" title="Toggle 8-bit sound effects">
+          [SND: ON]
+        </button>
+<span class="text-glow-magenta animate-blink-slow">[CREDITS: 04]</span>
+<span class="hidden sm:inline-block text-[#00FFFF] border border-[#00FFFF] px-2 py-1 shadow-[0_0_6px_#00FFFF]">
+          RATE: 60FPS
+        </span>
+<span class="text-white border border-[#FF00FF] px-2 py-1 shadow-[0_0_8px_#FF00FF] bg-black">
+          HIGH SCORE: 999,990
+        </span>
+</div>
+</header>
+<!-- MAIN BODY CONTAINER -->
+<main class="relative z-10 flex-grow w-full max-w-7xl mx-auto px-3 sm:px-4 md:px-8 py-6 md:py-8 space-y-12 md:space-y-16">
+<!-- SECTION 1: HERO (THE MAIN SCREEN) -->
+<section class="relative">
+<!-- TRON PERSPECTIVE GRID FLOOR IN HERO BACKGROUND -->
+<div class="tron-grid">
+<div class="tron-grid-inner"></div>
+</div>
+<div class="relative z-10 grid grid-cols-1 lg:grid-cols-12 gap-6 md:gap-8 items-stretch">
+<!-- LEFT HERO PANEL (lg:col-span-7) -->
+<div class="lg:col-span-7 flex flex-col justify-between p-5 sm:p-6 md:p-8 bg-black/90 border-glow-cyan relative">
+<div class="absolute -top-3 left-4 bg-black px-2 text-[10px] md:text-xs font-arcade text-glow-cyan border border-[#00FFFF]">
+              [ LEVEL 01 ]
+            </div>
+<div class="space-y-5 md:space-y-6 pt-2">
+<div class="inline-block border border-[#FF00FF] px-3 py-1 bg-black shadow-[0_0_10px_#FF00FF]">
+<span class="font-arcade text-[9px] sm:text-[10px] md:text-xs text-glow-magenta">
+                  STATUS: AI MISSION CONTROLLER ACTIVE
+                </span>
+</div>
+<h1 class="font-arcade text-xl sm:text-2xl md:text-4xl lg:text-5xl leading-tight text-white tracking-wide">
+                ENGINEER.<br/>
+<span class="text-glow-cyan">PLAN.</span><br/>
+                SHIP.<br/>
+<span class="text-glow-magenta">WIN.</span>
+</h1>
+<p class="font-arcade text-xs md:text-sm text-glow-cyan leading-relaxed">
+                YOUR AI MISSION COMMANDER FOR SOFTWARE TEAMS
+              </p>
+<p class="font-mono text-xs md:text-sm text-gray-200 leading-relaxed border-l-2 border-[#00FFFF] pl-4 py-1">
+                DROP YOUR IDEA. TEAMFORGE AI EVALUATES FEASIBILITY, DESIGNS THE ARCHITECTURE, AND ARMS EVERY DEVELOPER WITH THEIR EXACT MISSION BRIEFING.
+              </p>
+<!-- BUTTONS -->
+<div class="flex flex-wrap gap-3 sm:gap-4 pt-2">
+<a class="btn-pixel-primary interactive-sound font-arcade text-xs md:text-sm px-5 sm:px-6 py-3.5 sm:py-4 cursor-pointer inline-flex items-center gap-2" href="#insert-coin" id="btn-start-mission">
+<span>[ START MISSION ]</span>
+<span class="text-black font-bold">►</span>
+</a>
+<button class="btn-pixel-secondary interactive-sound font-arcade text-xs md:text-sm px-5 sm:px-6 py-3.5 sm:py-4 cursor-pointer" id="btn-view-demo">
+                  [ VIEW DEMO ]
+                </button>
+</div>
+</div>
+<!-- 8-BIT HEALTH BAR STAT -->
+<div class="mt-8 pt-6 border-t border-[#00FFFF]/40">
+<div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 font-arcade text-[10px] md:text-xs">
+<span class="text-glow-cyan">TEAMS DEPLOYED:</span>
+<div class="flex items-center gap-2">
+<span class="text-[#00FFFF]">[##########]</span>
+<span class="text-white font-bold text-glow-magenta">1,337 SHIPPED</span>
+</div>
+</div>
+<div class="w-full bg-[#001f24] h-2 mt-2 border border-[#00FFFF] p-[1px]">
+<div class="bg-[#00FFFF] h-full w-[88%] shadow-[0_0_8px_#00FFFF]"></div>
+</div>
+</div>
+</div>
+<!-- RIGHT HERO PANEL (lg:col-span-5) - INTERACTIVE CRT MONITOR TERMINAL -->
+<div class="lg:col-span-5 flex flex-col justify-between crt-monitor-case p-3 sm:p-4 md:p-6 border-glow-cyan" id="terminal-monitor">
+<!-- CRT Screen Header -->
+<div class="flex items-center justify-between pb-3 border-b border-[#00FFFF]/30">
+<div class="flex items-center gap-2">
+<div class="w-3 h-3 bg-[#FF0055] border border-black shadow-[0_0_5px_#FF0055]"></div>
+<div class="w-3 h-3 bg-[#FFD700] border border-black shadow-[0_0_5px_#FFD700]"></div>
+<div class="w-3 h-3 bg-[#00FF41] border border-black shadow-[0_0_5px_#00FF41]"></div>
+</div>
+<span class="font-arcade text-[9px] text-[#00FFFF]">CRT-MONITOR-01 // TELEMETRY</span>
+</div>
+<!-- Terminal Screen Inner & Logs -->
+<div class="crt-bezel p-3 sm:p-4 my-3 flex-grow flex flex-col font-mono text-xs md:text-[13px] leading-relaxed text-glow-green overflow-hidden min-h-[380px] sm:min-h-[420px]">
+<!-- Fixed Terminal Header -->
+<div class="font-arcade text-[10px] text-[#00FF41] pb-2 border-b border-[#00FF41]/30 mb-2 flex items-center justify-between">
+<span>TEAMFORGE OS v2.0 // BOOT_OK</span>
+<span class="text-[9px] text-[#00FFFF] hidden sm:inline">[LIVE TERMINAL]</span>
+</div>
+<!-- Scrollable Terminal Log Container -->
+<div class="flex-grow overflow-y-auto terminal-scroll pr-1 space-y-1 text-[#00FF41] font-mono text-[11px] sm:text-xs md:text-[13px]" id="crt-output-log">
+<p>&gt; LOADING MISSION PARAMETERS...</p>
+<p>&gt; TEAM SIZE: 4 DEVS</p>
+<p>&gt; TIME BUDGET: 6 DAYS</p>
+<p>&gt; MISSION: EVENT BOOKING PLATFORM</p>
+<p class="py-1 text-[#FFD700]">[ANALYZING FEASIBILITY... 84% CONFIDENCE]</p>
+<p>&gt; STACK SELECTED: NEXT.JS + SUPABASE</p>
+<div class="my-2 p-2 bg-[#00240d] border border-[#00FF41]">
+<p class="font-bold text-[#00FF41]">&gt; DEV ALLOCATION MATRIX:</p>
+<p class="text-white">  UNIT-01: BACKEND SCHEMA &amp; RLS</p>
+<p class="text-white">  UNIT-02: STRIPE &amp; API ROUTES</p>
+<p class="text-white">  UNIT-03: SEAT BOOKING UI FLOW</p>
+<p class="text-white">  UNIT-04: SYNTHETIC TESTS</p>
+</div>
+<p>&gt; GENERATING 12 DETERMINISTIC CONTEXT DOCS...</p>
+<p class="pt-1 text-[#00FFFF] font-bold">&gt; MISSION READY. TYPE 'HELP' FOR DIRECTIVES.</p>
+</div>
+<!-- Interactive Prompt Input Line -->
+<div class="mt-2 pt-2 border-t border-[#00FF41]/40 flex items-center gap-1 text-[11px] sm:text-xs text-[#00FF41]">
+<label class="font-arcade text-[9px] sm:text-[10px] text-[#00FFFF] whitespace-nowrap shrink-0" for="crt-input">COMMAND &gt;</label>
+<div class="relative flex-grow flex items-center">
+<input autocomplete="off" autofocus="" class="bg-transparent text-emerald-400 font-mono focus:outline-none w-full border-none p-0 text-xs sm:text-[13px]" id="crt-input" placeholder="type 'help', 'start', 'demo'..." spellcheck="false"/>
+<span class="inline-block w-2 h-3.5 bg-[#00FF41] ml-0.5 align-middle animate-cursor pointer-events-none" id="crt-prompt-cursor"></span>
+</div>
+</div>
+</div>
+<!-- Speaker Grille Decoration -->
+<div class="pt-2">
+<div class="flex items-center justify-between text-[8px] sm:text-[9px] font-arcade text-[#00FFFF] mb-1">
+<span>SPEAKER-L</span>
+<span>COOLING VENT</span>
+<span>SPEAKER-R</span>
+</div>
+<div class="h-5 sm:h-6 w-full speaker-grille border border-[#00FFFF]/40"></div>
+</div>
+</div>
+</div>
+</section>
+<!-- SECTION 2: THE POWER-UP GRID (FEATURES) -->
+<section class="space-y-6 pt-4">
+<div class="border-y-2 border-[#00FFFF] py-3 text-center shadow-[0_0_15px_rgba(0,255,255,0.4)] bg-black">
+<h2 class="font-arcade text-sm md:text-xl text-glow-cyan tracking-wider">
+            [ SELECT YOUR POWER-UP ]
+          </h2>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+<!-- CARD 1: THE ORACLE -->
+<div class="powerup-card interactive-sound p-6 flex flex-col justify-between relative group cursor-pointer">
+<div class="flex justify-between items-start mb-6">
+<span class="font-arcade text-[10px] text-black bg-[#00FFFF] px-2 py-1 font-bold shadow-[0_0_8px_#00FFFF]">
+                [LVL 1]
+              </span>
+<span class="font-arcade text-[9px] text-[#00FFFF]">ITEM: #01</span>
+</div>
+<!-- 8-Bit Pixel Art Crystal Ball Icon -->
+<div class="flex justify-center my-4">
+<div class="relative w-20 h-20 bg-black border-2 border-[#00FFFF] p-2 flex items-center justify-center shadow-[0_0_12px_#00FFFF] group-hover:border-[#FF00FF] group-hover:shadow-[0_0_16px_#FF00FF] transition-colors">
+<svg class="text-[#00FFFF] group-hover:text-[#FF00FF] transition-colors" fill="currentColor" height="48" viewbox="0 0 16 16" width="48">
+<rect height="1" width="6" x="5" y="1"></rect>
+<rect height="1" width="10" x="3" y="2"></rect>
+<rect height="1" width="12" x="2" y="3"></rect>
+<rect height="1" width="14" x="1" y="4"></rect>
+<rect height="4" width="14" x="1" y="5"></rect>
+<rect height="1" width="12" x="2" y="9"></rect>
+<rect height="1" width="10" x="3" y="10"></rect>
+<rect height="1" width="6" x="5" y="11"></rect>
+<rect height="1" width="4" x="6" y="12"></rect>
+<rect height="1" width="8" x="4" y="13"></rect>
+<rect height="1" width="12" x="2" y="14"></rect>
+<rect fill="#FFFFFF" height="2" width="2" x="4" y="4"></rect>
+</svg>
+</div>
+</div>
+<div class="space-y-3 mt-2 text-center">
+<h3 class="card-title font-arcade text-sm md:text-base text-glow-cyan transition-colors">
+                THE ORACLE
+              </h3>
+<div class="font-arcade text-[10px] text-white/90">
+                FEASIBILITY ANALYZER
+              </div>
+<p class="font-mono text-xs text-gray-300 leading-relaxed border-t border-[#00FFFF]/30 pt-3">
+                RUTHLESSLY CUTS YOUR SCOPE. KILLS BAD IDEAS BEFORE DEMO DAY.
+              </p>
+</div>
+<div class="mt-6 pt-3 border-t border-[#00FFFF]/20 flex justify-between items-center text-[10px] font-arcade text-[#00FFFF]">
+<span>SLOT: PASSIVE</span>
+<span>EQUIPPED</span>
+</div>
+</div>
+<!-- CARD 2: THE ARCHITECT -->
+<div class="powerup-card interactive-sound p-6 flex flex-col justify-between relative group cursor-pointer">
+<div class="flex justify-between items-start mb-6">
+<span class="font-arcade text-[10px] text-black bg-[#00FFFF] px-2 py-1 font-bold shadow-[0_0_8px_#00FFFF]">
+                [LVL 2]
+              </span>
+<span class="font-arcade text-[9px] text-[#00FFFF]">ITEM: #02</span>
+</div>
+<!-- 8-Bit Pixel Art Blueprint Gear Icon -->
+<div class="flex justify-center my-4">
+<div class="relative w-20 h-20 bg-black border-2 border-[#00FFFF] p-2 flex items-center justify-center shadow-[0_0_12px_#00FFFF] group-hover:border-[#FF00FF] group-hover:shadow-[0_0_16px_#FF00FF] transition-colors">
+<svg class="text-[#00FFFF] group-hover:text-[#FF00FF] transition-colors" fill="currentColor" height="48" viewbox="0 0 16 16" width="48">
+<rect height="2" width="4" x="6" y="1"></rect>
+<rect height="4" width="2" x="1" y="6"></rect>
+<rect height="4" width="2" x="13" y="6"></rect>
+<rect height="2" width="4" x="6" y="13"></rect>
+<rect height="10" width="8" x="4" y="3"></rect>
+<rect height="8" width="10" x="3" y="4"></rect>
+<rect height="2" width="2" x="2" y="2"></rect>
+<rect height="2" width="2" x="12" y="2"></rect>
+<rect height="2" width="2" x="2" y="12"></rect>
+<rect height="2" width="2" x="12" y="12"></rect>
+<rect fill="#000000" height="4" width="4" x="6" y="6"></rect>
+<rect fill="#FFFFFF" height="2" width="2" x="7" y="7"></rect>
+</svg>
+</div>
+</div>
+<div class="space-y-3 mt-2 text-center">
+<h3 class="card-title font-arcade text-sm md:text-base text-glow-cyan transition-colors">
+                THE ARCHITECT
+              </h3>
+<div class="font-arcade text-[10px] text-white/90">
+                SYSTEM DESIGN ENGINE
+              </div>
+<p class="font-mono text-xs text-gray-300 leading-relaxed border-t border-[#00FFFF]/30 pt-3">
+                PICKS YOUR EXACT STACK. NO GENERIC ADVICE. EVER.
+              </p>
+</div>
+<div class="mt-6 pt-3 border-t border-[#00FFFF]/20 flex justify-between items-center text-[10px] font-arcade text-[#00FFFF]">
+<span>SLOT: ACTIVE</span>
+<span>SYNTHESIZED</span>
+</div>
+</div>
+<!-- CARD 3: THE PLAYBOOK -->
+<div class="powerup-card interactive-sound p-6 flex flex-col justify-between relative group cursor-pointer">
+<div class="flex justify-between items-start mb-6">
+<span class="font-arcade text-[10px] text-black bg-[#00FFFF] px-2 py-1 font-bold shadow-[0_0_8px_#00FFFF]">
+                [LVL 3]
+              </span>
+<span class="font-arcade text-[9px] text-[#00FFFF]">ITEM: #03</span>
+</div>
+<!-- 8-Bit Pixel Art Checklist Scroll Icon -->
+<div class="flex justify-center my-4">
+<div class="relative w-20 h-20 bg-black border-2 border-[#00FFFF] p-2 flex items-center justify-center shadow-[0_0_12px_#00FFFF] group-hover:border-[#FF00FF] group-hover:shadow-[0_0_16px_#FF00FF] transition-colors">
+<svg class="text-[#00FFFF] group-hover:text-[#FF00FF] transition-colors" fill="currentColor" height="48" viewbox="0 0 16 16" width="48">
+<rect height="14" width="10" x="3" y="1"></rect>
+<rect height="12" width="12" x="2" y="2"></rect>
+<rect fill="#000000" height="1" width="6" x="5" y="4"></rect>
+<rect fill="#000000" height="1" width="6" x="5" y="7"></rect>
+<rect fill="#000000" height="1" width="6" x="5" y="10"></rect>
+<rect fill="#00FF41" height="1" width="1" x="12" y="4"></rect>
+<rect fill="#00FF41" height="1" width="1" x="12" y="7"></rect>
+<rect fill="#00FF41" height="1" width="1" x="12" y="10"></rect>
+</svg>
+</div>
+</div>
+<div class="space-y-3 mt-2 text-center">
+<h3 class="card-title font-arcade text-sm md:text-base text-glow-cyan transition-colors">
+                THE PLAYBOOK
+              </h3>
+<div class="font-arcade text-[10px] text-white/90">
+                PARALLEL EXECUTION
+              </div>
+<p class="font-mono text-xs text-gray-300 leading-relaxed border-t border-[#00FFFF]/30 pt-3">
+                ARMS EVERY DEVELOPER WITH THEIR EXACT MISSION BRIEF.
+              </p>
+</div>
+<div class="mt-6 pt-3 border-t border-[#00FFFF]/20 flex justify-between items-center text-[10px] font-arcade text-[#00FFFF]">
+<span>SLOT: TACTICAL</span>
+<span>UNLOCKED</span>
+</div>
+</div>
+</div>
+</section>
+<!-- SECTION 3: THE MISSION PIPELINE (HOW IT WORKS - 8-BIT WORLD MAP) -->
+<section class="space-y-6 pt-6">
+<div class="border-y-2 border-[#00FFFF] py-3 text-center shadow-[0_0_15px_rgba(0,255,255,0.4)] bg-black">
+<h2 class="font-arcade text-sm md:text-xl text-glow-cyan tracking-wider">
+            [ MISSION BRIEFING SEQUENCE ]
+          </h2>
+</div>
+<!-- 8-Bit World Map Container (Smooth Horizontal Scroll on Mobile) -->
+<div class="p-4 sm:p-6 md:p-8 bg-black border-glow-cyan relative overflow-x-auto no-scrollbar">
+<div class="min-w-[780px] py-8 relative">
+<!-- Nodes Container with up-down variation -->
+<div class="flex items-center justify-between relative z-10">
+<!-- Node 1: PROBLEM -->
+<div class="flex flex-col items-center group cursor-pointer transform -translate-y-2 interactive-sound">
+<div class="w-12 h-12 bg-black border-2 border-[#00FFFF] flex items-center justify-center font-arcade text-xs text-glow-cyan shadow-[0_0_10px_#00FFFF] group-hover:border-[#FF00FF] group-hover:shadow-[0_0_15px_#FF00FF]">
+                  01
+                </div>
+<span class="font-arcade text-[9px] text-[#00FFFF] mt-3 tracking-tighter">PROBLEM</span>
+<span class="font-mono text-[9px] text-gray-400 mt-1">INPUT GOALS</span>
+</div>
+<!-- Dotted Path 1 -->
+<div class="flex-grow flex justify-center items-center px-1">
+<span class="text-[#00FFFF] font-mono tracking-widest text-xs select-none">••••••••</span>
+</div>
+<!-- Node 2: FEASIBILITY -->
+<div class="flex flex-col items-center group cursor-pointer transform translate-y-3 interactive-sound">
+<div class="w-12 h-12 bg-black border-2 border-[#00FFFF] flex items-center justify-center font-arcade text-xs text-glow-cyan shadow-[0_0_10px_#00FFFF] group-hover:border-[#FF00FF] group-hover:shadow-[0_0_15px_#FF00FF]">
+                  02
+                </div>
+<span class="font-arcade text-[9px] text-[#00FFFF] mt-3 tracking-tighter">FEASIBILITY</span>
+<span class="font-mono text-[9px] text-gray-400 mt-1">SCOPE SLASH</span>
+</div>
+<!-- Dotted Path 2 -->
+<div class="flex-grow flex justify-center items-center px-1">
+<span class="text-[#00FFFF] font-mono tracking-widest text-xs select-none">••••••••</span>
+</div>
+<!-- Node 3: STACK -->
+<div class="flex flex-col items-center group cursor-pointer transform -translate-y-3 interactive-sound">
+<div class="w-12 h-12 bg-black border-2 border-[#00FFFF] flex items-center justify-center font-arcade text-xs text-glow-cyan shadow-[0_0_10px_#00FFFF] group-hover:border-[#FF00FF] group-hover:shadow-[0_0_15px_#FF00FF]">
+                  03
+                </div>
+<span class="font-arcade text-[9px] text-[#00FFFF] mt-3 tracking-tighter">STACK</span>
+<span class="font-mono text-[9px] text-gray-400 mt-1">INFRA CHOICE</span>
+</div>
+<!-- Dotted Path 3 -->
+<div class="flex-grow flex justify-center items-center px-1">
+<span class="text-[#00FFFF] font-mono tracking-widest text-xs select-none">••••••••</span>
+</div>
+<!-- Node 4: CONTEXT -->
+<div class="flex flex-col items-center group cursor-pointer transform translate-y-2 interactive-sound">
+<div class="w-12 h-12 bg-black border-2 border-[#00FFFF] flex items-center justify-center font-arcade text-xs text-glow-cyan shadow-[0_0_10px_#00FFFF] group-hover:border-[#FF00FF] group-hover:shadow-[0_0_15px_#FF00FF]">
+                  04
+                </div>
+<span class="font-arcade text-[9px] text-[#00FFFF] mt-3 tracking-tighter">CONTEXT</span>
+<span class="font-mono text-[9px] text-gray-400 mt-1">TYPED DOCS</span>
+</div>
+<!-- Dotted Path 4 -->
+<div class="flex-grow flex justify-center items-center px-1">
+<span class="text-[#00FFFF] font-mono tracking-widest text-xs select-none">••••••••</span>
+</div>
+<!-- Node 5: TASKS -->
+<div class="flex flex-col items-center group cursor-pointer transform -translate-y-2 interactive-sound">
+<div class="w-12 h-12 bg-black border-2 border-[#00FFFF] flex items-center justify-center font-arcade text-xs text-glow-cyan shadow-[0_0_10px_#00FFFF] group-hover:border-[#FF00FF] group-hover:shadow-[0_0_15px_#FF00FF]">
+                  05
+                </div>
+<span class="font-arcade text-[9px] text-[#00FFFF] mt-3 tracking-tighter">TASKS</span>
+<span class="font-mono text-[9px] text-gray-400 mt-1">DEV ASSIGN</span>
+</div>
+<!-- Dotted Path 5 -->
+<div class="flex-grow flex justify-center items-center px-1">
+<span class="text-[#00FFFF] font-mono tracking-widest text-xs select-none">••••••••</span>
+</div>
+<!-- Node 6: BUILD -->
+<div class="flex flex-col items-center group cursor-pointer transform translate-y-3 interactive-sound">
+<div class="w-12 h-12 bg-black border-2 border-[#00FFFF] flex items-center justify-center font-arcade text-xs text-glow-cyan shadow-[0_0_10px_#00FFFF] group-hover:border-[#FF00FF] group-hover:shadow-[0_0_15px_#FF00FF]">
+                  06
+                </div>
+<span class="font-arcade text-[9px] text-[#00FFFF] mt-3 tracking-tighter">BUILD</span>
+<span class="font-mono text-[9px] text-gray-400 mt-1">PARALLEL OPS</span>
+</div>
+<!-- Dotted Path 6 -->
+<div class="flex-grow flex justify-center items-center px-1">
+<span class="text-[#FFD700] font-mono tracking-widest text-xs select-none">••••••••</span>
+</div>
+<!-- Node 7: SHIP (FINAL BOSS / TROPHY) -->
+<div class="flex flex-col items-center group cursor-pointer transform -translate-y-2 interactive-sound">
+<div class="w-14 h-14 bg-black border-2 border-[#FFD700] flex flex-col items-center justify-center text-glow-gold shadow-[0_0_18px_#FFD700] animate-pulse">
+<svg fill="currentColor" height="24" viewbox="0 0 16 16" width="24">
+<rect height="6" width="8" x="4" y="2"></rect>
+<rect height="3" width="2" x="2" y="3"></rect>
+<rect height="3" width="2" x="12" y="3"></rect>
+<rect height="2" width="4" x="6" y="8"></rect>
+<rect height="2" width="2" x="7" y="10"></rect>
+<rect height="2" width="6" x="5" y="12"></rect>
+</svg>
+<span class="font-arcade text-[8px] text-[#FFD700]">07</span>
+</div>
+<span class="font-arcade text-[10px] text-glow-gold mt-2 font-bold tracking-tight">SHIP</span>
+<span class="font-mono text-[9px] text-[#00FF41] mt-1">[VICTORY]</span>
+</div>
+</div>
+</div>
+<div class="border-t border-[#00FFFF]/30 pt-3 flex flex-wrap items-center justify-between gap-2 text-[9px] sm:text-[10px] font-arcade text-[#00FFFF]">
+<span>MAP ROUTE: DETERMINISTIC 7-STAGE PIPELINE</span>
+<span>DIFFICULTY: HARDCORE</span>
+<span>ZERO BOTTLENECKS GUARANTEED</span>
+</div>
+</div>
+</section>
+<!-- SECTION 4: HIGH SCORE TABLE (SOCIAL PROOF) -->
+<section class="space-y-6 pt-6">
+<div class="border-y-2 border-[#00FFFF] py-3 text-center shadow-[0_0_15px_rgba(0,255,255,0.4)] bg-black">
+<h2 class="font-arcade text-sm md:text-xl text-glow-cyan tracking-wider">
+            [ HIGH SCORES ]
+          </h2>
+</div>
+<div class="p-4 md:p-6 bg-black border-glow-cyan overflow-x-auto">
+<table class="w-full text-left font-mono text-xs md:text-sm border-collapse min-w-[580px]">
+<thead>
+<tr class="border-b-2 border-[#00FFFF] font-arcade text-[10px] md:text-xs text-[#00FFFF]">
+<th class="py-3 px-3">RANK</th>
+<th class="py-3 px-3">TEAM</th>
+<th class="py-3 px-3">MISSION</th>
+<th class="py-3 px-3">TIME</th>
+<th class="py-3 px-3 text-right">STATUS</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-[#00FFFF]/20">
+<!-- ROW 1 -->
+<tr class="hover:bg-[#00FFFF]/10 transition-colors">
+<td class="py-4 px-3 font-arcade text-[#FFD700] text-glow-gold">1ST</td>
+<td class="py-4 px-3 font-bold text-white tracking-wider">ALPHA SQUAD</td>
+<td class="py-4 px-3 text-[#00FFFF]">EVENT PLATFORM</td>
+<td class="py-4 px-3 text-gray-200">6 DAYS</td>
+<td class="py-4 px-3 text-right">
+<span class="inline-block px-2 py-1 bg-[#00240d] border-glow-green text-glow-green font-arcade text-[10px]">
+                    [SHIPPED]
+                  </span>
+</td>
+</tr>
+<!-- ROW 2 -->
+<tr class="hover:bg-[#00FFFF]/10 transition-colors">
+<td class="py-4 px-3 font-arcade text-gray-300">2ND</td>
+<td class="py-4 px-3 font-bold text-white tracking-wider">NOVA TEAM</td>
+<td class="py-4 px-3 text-[#00FFFF]">FINTECH APP</td>
+<td class="py-4 px-3 text-gray-200">3 DAYS</td>
+<td class="py-4 px-3 text-right">
+<span class="inline-block px-2 py-1 bg-[#00240d] border-glow-green text-glow-green font-arcade text-[10px]">
+                    [SHIPPED]
+                  </span>
+</td>
+</tr>
+<!-- ROW 3 -->
+<tr class="hover:bg-[#00FFFF]/10 transition-colors">
+<td class="py-4 px-3 font-arcade text-amber-600">3RD</td>
+<td class="py-4 px-3 font-bold text-white tracking-wider">BYTE FORCE</td>
+<td class="py-4 px-3 text-[#00FFFF]">AI CHATBOT</td>
+<td class="py-4 px-3 text-gray-200">2 DAYS</td>
+<td class="py-4 px-3 text-right">
+<span class="inline-block px-2 py-1 bg-[#00240d] border-glow-green text-glow-green font-arcade text-[10px]">
+                    [SHIPPED]
+                  </span>
+</td>
+</tr>
+<!-- ROW 4 -->
+<tr class="hover:bg-[#00FFFF]/10 transition-colors">
+<td class="py-4 px-3 font-arcade text-gray-500">4TH</td>
+<td class="py-4 px-3 font-bold text-gray-400 tracking-wider">???</td>
+<td class="py-4 px-3 text-gray-400">STEALTH PROJECT</td>
+<td class="py-4 px-3 text-gray-400">???</td>
+<td class="py-4 px-3 text-right">
+<span class="inline-block px-2 py-1 bg-[#2e1d00] border border-[#FFB800] text-[#FFB800] shadow-[0_0_8px_#FFB800] font-arcade text-[10px] animate-pulse">
+                    [IN PROGRESS]
+                  </span>
+</td>
+</tr>
+</tbody>
+</table>
+<div class="mt-4 pt-3 border-t border-[#00FFFF]/30 flex flex-wrap justify-between items-center gap-2 text-[10px] font-arcade text-gray-400">
+<span>LEADERBOARD REFRESHED REAL-TIME</span>
+<span class="text-glow-cyan">TOTAL DEPLOYED TEAMS: 1,337</span>
+</div>
+</div>
+</section>
+<!-- SECTION 5: INSERT COIN CTA -->
+<section class="pt-8 pb-12" id="insert-coin">
+<div class="border-glow-magenta p-6 sm:p-8 md:p-14 bg-black text-center space-y-6 relative overflow-hidden">
+<!-- Flashing Title -->
+<div class="animate-coin-flash font-arcade text-sm sm:text-base md:text-2xl lg:text-3xl text-glow-magenta font-bold">
+            &gt;&gt;&gt; INSERT COIN TO CONTINUE &lt;&lt;&lt;
+          </div>
+<p class="font-mono text-xs md:text-sm text-gray-200 max-w-2xl mx-auto leading-relaxed">
+            READY TO LEVEL UP YOUR ENGINEERING VELOCITY? DROP YOUR CODEBASE OR UNSTRUCTURED PRODUCT PITCH AND RECEIVE FULL ARCHITECTURE EXECUTION PLANS IN SECONDS.
+          </p>
+<!-- Giant Pixel-Art CTA Button -->
+<div class="pt-4">
+<a class="btn-pixel-primary interactive-sound font-arcade text-xs sm:text-sm md:text-lg px-6 sm:px-8 md:px-12 py-4 md:py-5 inline-block cursor-pointer tracking-wider" href="javascript:void(0)" id="btn-claim-mission">
+              [ CLAIM YOUR FREE MISSION ]
+            </a>
+</div>
+<!-- Token info -->
+<div class="pt-2">
+<span class="font-arcade text-[9px] sm:text-[10px] md:text-xs text-glow-cyan">
+              1 CREDIT = 1 HACKATHON TEAM // ZERO SETUP REQUIRED
+            </span>
+</div>
+<div class="flex flex-wrap justify-center items-center gap-3 sm:gap-6 pt-4 font-mono text-xs text-gray-400">
+<span>[✓] INSTANT CLI ACCESS</span>
+<span>[✓] SUPABASE &amp; NEXT.JS PRESETS</span>
+<span>[✓] ZERO VENDOR LOCK-IN</span>
+</div>
+</div>
+</section>
+</main>
+<!-- ARCADE CABINET BOTTOM FOOTER -->
+<footer class="w-full bg-black border-t-[3px] border-[#00FFFF] shadow-[0_0_20px_#00FFFF] relative z-20">
+<!-- ROW 1: GRID OF LINKS IN MONOSPACE -->
+<div class="max-w-7xl mx-auto px-4 md:px-8 py-4 sm:py-5 flex flex-wrap items-center justify-between gap-4 border-b border-[#00FFFF]/30 font-mono text-xs text-gray-300">
+<div class="flex items-center gap-2 font-arcade text-xs text-glow-cyan">
+<span>TEAMFORGE AI</span>
+</div>
+<div class="flex flex-wrap items-center justify-center gap-x-4 sm:gap-x-6 gap-y-2 text-center text-[11px] sm:text-xs">
+<a class="hover:text-[#00FFFF] hover:underline underline-offset-4 transition-colors" href="#">PLATFORM</a>
+<span class="text-[#00FFFF]">|</span>
+<a class="hover:text-[#00FFFF] hover:underline underline-offset-4 transition-colors" href="#">METHODOLOGY</a>
+<span class="text-[#00FFFF]">|</span>
+<a class="hover:text-[#00FFFF] hover:underline underline-offset-4 transition-colors" href="#">DOCS</a>
+<span class="text-[#00FFFF]">|</span>
+<a class="hover:text-[#00FFFF] hover:underline underline-offset-4 transition-colors" href="#">PRICING</a>
+<span class="text-[#00FFFF]">|</span>
+<a class="hover:text-[#00FFFF] hover:underline underline-offset-4 transition-colors" href="#">ABOUT</a>
+<span class="text-[#00FFFF]">|</span>
+<a class="hover:text-[#00FFFF] hover:underline underline-offset-4 transition-colors" href="#">GITHUB</a>
+</div>
+<div class="font-arcade text-[9px] sm:text-[10px] text-[#00FF41]">
+          SYS: NOMINAL
+        </div>
+</div>
+<!-- ROW 2: SCROLLING TICKER -->
+<div class="w-full bg-[#001117] py-2 overflow-hidden border-t border-[#00FFFF]/40 relative flex items-center">
+<div class="animate-ticker font-arcade text-[10px] md:text-xs text-[#00FFFF] tracking-wider space-x-12">
+<span>[SYSTEM ONLINE]</span>
+<span>[AI MENTOR: ACTIVE]</span>
+<span>[TEAMS CONNECTED: 1,337]</span>
+<span>[FEASIBILITY ENGINE: ARMED]</span>
+<span>[INSERT COIN TO BEGIN]</span>
+<span>[COPYRIGHT TEAMFORGE 2025]</span>
+<span>[ALL SYSTEMS NOMINAL]</span>
+<span>[AI MENTOR: ONLINE]</span>
+<!-- Duplicate for smooth continuous scroll loop -->
+<span>[SYSTEM ONLINE]</span>
+<span>[AI MENTOR: ACTIVE]</span>
+<span>[TEAMS CONNECTED: 1,337]</span>
+<span>[FEASIBILITY ENGINE: ARMED]</span>
+<span>[INSERT COIN TO BEGIN]</span>
+<span>[COPYRIGHT TEAMFORGE 2025]</span>
+<span>[ALL SYSTEMS NOMINAL]</span>
+<span>[AI MENTOR: ONLINE]</span>
+</div>
+</div>
+</footer>
+</div>
+<!-- INTERACTIVE CRT TERMINAL & 8-BIT AUDIO SCRIPT -->
+<script>
+    (function () {
+      /* ==========================================================
+         MODULE 1: 8-BIT AUDIO SYSTEM (WEB AUDIO API SYNTHESIZER)
+         Zero external dependencies, pure audio oscillator synthesis
+         ========================================================== */
+      let audioCtx = null;
+      let soundEnabled = true;
+
+      function getAudioContext() {
+        if (!audioCtx) {
+          const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+          if (AudioContextClass) {
+            audioCtx = new AudioContextClass();
+          }
+        }
+        if (audioCtx && audioCtx.state === 'suspended') {
+          audioCtx.resume();
+        }
+        return audioCtx;
+      }
+
+      // 1. Button Hover Sound: Crisp ascending high-tech frequency sweep (440Hz -> 880Hz)
+      function playHoverSound() {
+        if (!soundEnabled) return;
+        const ctx = getAudioContext();
+        if (!ctx) return;
+
+        try {
+          const osc = ctx.createOscillator();
+          const gain = ctx.createGain();
+          
+          osc.type = 'square';
+          const now = ctx.currentTime;
+          osc.frequency.setValueAtTime(440, now);
+          osc.frequency.exponentialRampToValueAtTime(880, now + 0.05);
+
+          gain.gain.setValueAtTime(0.04, now);
+          gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.06);
+
+          osc.connect(gain);
+          gain.connect(ctx.destination);
+
+          osc.start(now);
+          osc.stop(now + 0.065);
+        } catch (e) {}
+      }
+
+      // 2. Button Click Sound: Arcade coin / powerup bloop (987Hz -> 1318Hz with rapid decay)
+      function playClickSound() {
+        if (!soundEnabled) return;
+        const ctx = getAudioContext();
+        if (!ctx) return;
+
+        try {
+          const now = ctx.currentTime;
+          const osc = ctx.createOscillator();
+          const gain = ctx.createGain();
+
+          osc.type = 'triangle';
+          osc.frequency.setValueAtTime(987.77, now); // B5
+          osc.frequency.setValueAtTime(1318.51, now + 0.045); // E6
+
+          gain.gain.setValueAtTime(0.12, now);
+          gain.gain.linearRampToValueAtTime(0.14, now + 0.04);
+          gain.gain.exponentialRampToValueAtTime(0.001, now + 0.22);
+
+          osc.connect(gain);
+          gain.connect(ctx.destination);
+
+          osc.start(now);
+          osc.stop(now + 0.23);
+        } catch (e) {}
+      }
+
+      // 3. Keypress Sound: Short tactile mechanical tick chirp (1200Hz -> 800Hz)
+      function playKeySound() {
+        if (!soundEnabled) return;
+        const ctx = getAudioContext();
+        if (!ctx) return;
+
+        try {
+          const now = ctx.currentTime;
+          const osc = ctx.createOscillator();
+          const gain = ctx.createGain();
+
+          osc.type = 'square';
+          osc.frequency.setValueAtTime(1200, now);
+          osc.frequency.exponentialRampToValueAtTime(650, now + 0.015);
+
+          gain.gain.setValueAtTime(0.03, now);
+          gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.015);
+
+          osc.connect(gain);
+          gain.connect(ctx.destination);
+
+          osc.start(now);
+          osc.stop(now + 0.016);
+        } catch (e) {}
+      }
+
+      // Sound Toggle in arcade cabinet header
+      const soundToggleBtn = document.getElementById('sound-toggle-btn');
+      if (soundToggleBtn) {
+        soundToggleBtn.addEventListener('click', function(e) {
+          getAudioContext();
+          soundEnabled = !soundEnabled;
+          this.textContent = soundEnabled ? '[SND: ON]' : '[SND: MUTED]';
+          this.style.color = soundEnabled ? '#00FFFF' : '#FF0055';
+          this.style.borderColor = soundEnabled ? '#00FFFF' : '#FF0055';
+          if (soundEnabled) playClickSound();
+        });
+      }
+
+      // Attach audio handlers to all interactive buttons & powerup cards
+      const interactiveElements = document.querySelectorAll('.interactive-sound, .btn-pixel-primary, .btn-pixel-secondary, .powerup-card');
+      interactiveElements.forEach(el => {
+        el.addEventListener('mouseenter', () => playHoverSound());
+        el.addEventListener('click', () => {
+          getAudioContext();
+          playClickSound();
+        });
+      });
+
+      // Unlock AudioContext on first user gesture
+      window.addEventListener('click', () => getAudioContext(), { once: true });
+      window.addEventListener('keydown', () => getAudioContext(), { once: true });
+
+      /* ==========================================================
+         MODULE 2: INTERACTIVE CRT TERMINAL ENGINE
+         Command handler & character-by-character typewriter print
+         ========================================================== */
+      const crtInput = document.getElementById('crt-input');
+      const crtOutput = document.getElementById('crt-output-log');
+      let isTyping = false;
+      const typeQueue = [];
+
+      function scrollTerminalToBottom() {
+        if (crtOutput) {
+          crtOutput.scrollTop = crtOutput.scrollHeight;
+        }
+      }
+
+      // Character-by-character Typewriter Print Queue Engine
+      function typewriteText(text, colorClass = 'text-[#00FF41]', onFinish = null) {
+        const lineEl = document.createElement('p');
+        if (colorClass) {
+          colorClass.split(' ').forEach(c => c && lineEl.classList.add(c));
+        }
+        crtOutput.appendChild(lineEl);
+        scrollTerminalToBottom();
+
+        let index = 0;
+        isTyping = true;
+
+        const timer = setInterval(() => {
+          if (index < text.length) {
+            lineEl.textContent += text.charAt(index);
+            index++;
+            scrollTerminalToBottom();
+            if (Math.random() > 0.45) playKeySound();
+          } else {
+            clearInterval(timer);
+            isTyping = false;
+            if (onFinish) onFinish();
+            processTypeQueue();
+          }
+        }, 12);
+      }
+
+      function queuePrintLine(text, colorClass = 'text-[#00FF41]') {
+        typeQueue.push({ text, colorClass });
+        if (!isTyping) {
+          processTypeQueue();
+        }
+      }
+
+      function processTypeQueue() {
+        if (typeQueue.length === 0) {
+          isTyping = false;
+          return;
+        }
+        const next = typeQueue.shift();
+        typewriteText(next.text, next.colorClass, () => {
+          processTypeQueue();
+        });
+      }
+
+      // Clear & reset terminal
+      function resetTerminal() {
+        crtOutput.innerHTML = `
+          <div class="font-arcade text-[10px] text-[#00FF41] pb-2 border-b border-[#00FF41]/30 mb-2">
+            TEAMFORGE OS v2.0 // TERMINAL BUFFER CLEARED
+          </div>
+          <p class="text-[#00FFFF] font-bold">&gt; SYSTEM READY. TYPE 'HELP' FOR DIRECTIVES.</p>
+        `;
+        scrollTerminalToBottom();
+      }
+
+      // Execute Terminal Directives
+      function executeCommand(rawCommand) {
+        const cmd = rawCommand.trim().toLowerCase();
+        
+        // Print the echoed command line
+        const echoLine = document.createElement('p');
+        echoLine.className = 'font-bold text-white pt-2';
+        echoLine.textContent = '> ' + rawCommand;
+        crtOutput.appendChild(echoLine);
+        scrollTerminalToBottom();
+
+        if (!cmd) return;
+
+        if (cmd === 'help') {
+          queuePrintLine('> AVAILABLE DIRECTIVES:', 'text-[#00FFFF] font-bold');
+          queuePrintLine('  HELP    - DISPLAY COMMAND MANIFEST', 'text-white');
+          queuePrintLine('  START   - INITIATE LIVE MISSION BRIEFING', 'text-white');
+          queuePrintLine('  DEMO    - RUN TELEMETRY REPO ANALYSIS', 'text-white');
+          queuePrintLine('  STATUS  - SYSTEM DIAGNOSTICS & CREDITS', 'text-white');
+          queuePrintLine('  CLEAR   - PURGE BUFFER AND RESET SCREEN', 'text-white');
+          queuePrintLine('> READY FOR MISSION SPEC.', 'text-[#00FF41]');
+        } 
+        else if (cmd === 'start') {
+          queuePrintLine('> [MISSION INITIATED]', 'text-[#FFD700] font-bold');
+          queuePrintLine('> TARGET: AUTONOMOUS ARCHITECTURE MAP', 'text-[#00FFFF]');
+          queuePrintLine('> SQUAD ALLOCATED: 4 DEVS', 'text-[#00FF41]');
+          queuePrintLine('> SPRINT DURATION: 6 DAYS', 'text-[#00FF41]');
+          queuePrintLine('> OBJECTIVE: ZERO CODE DRIFT. SHIP BY SUNDAY.', 'text-white font-bold');
+        } 
+        else if (cmd === 'demo') {
+          queuePrintLine('> ANALYZING REPO GRAPH...', 'text-[#FFD700]');
+          queuePrintLine('> DETECTED 14 REDUNDANT UTILS (PRUNED)', 'text-gray-300');
+          queuePrintLine('> SYNTHESIZING VERIFIED DATABASE SCHEMAS', 'text-[#00FFFF]');
+          queuePrintLine('> GENERATING 12 DETERMINISTIC WORK TICKETS', 'text-[#00FF41]');
+          queuePrintLine('> FEASIBILITY SCORE: 98.4% [OPTIMAL]', 'text-[#00FF41] font-bold');
+        } 
+        else if (cmd === 'status') {
+          queuePrintLine('> SYSTEM STATUS: NOMINAL [SYS_OK]', 'text-[#00FF41] font-bold');
+          queuePrintLine('> REMAINING CREDITS: 04 TOKENS', 'text-[#FF00FF]');
+          queuePrintLine('> FRAME LOCK: 60 FPS SOLID', 'text-[#00FFFF]');
+          queuePrintLine('> ACTIVE INSTANCES: 1,337 ENGINES DEPLOYED', 'text-white');
+        } 
+        else if (cmd === 'clear') {
+          resetTerminal();
+        } 
+        else {
+          queuePrintLine("> UNRECOGNIZED COMMAND. TYPE 'HELP' FOR DIRECTIVES.", 'text-[#FF0055] font-bold');
+        }
+      }
+
+      // Terminal Keyboard Listener
+      if (crtInput) {
+        crtInput.addEventListener('keydown', (e) => {
+          if (e.key === 'Enter') {
+            const value = crtInput.value;
+            crtInput.value = '';
+            playClickSound();
+            executeCommand(value);
+          } else {
+            playKeySound();
+          }
+        });
+      }
+
+      // Connect View Demo Hero button to trigger interactive terminal demo
+      const viewDemoBtn = document.getElementById('btn-view-demo');
+      if (viewDemoBtn) {
+        viewDemoBtn.addEventListener('click', (e) => {
+          e.preventDefault();
+          const term = document.getElementById('terminal-monitor');
+          if (term) term.scrollIntoView({ behavior: 'smooth' });
+          setTimeout(() => {
+            executeCommand('demo');
+            if (crtInput) crtInput.focus();
+          }, 350);
+        });
+      }
+
+    })();
+  </script>
+</body></html>
