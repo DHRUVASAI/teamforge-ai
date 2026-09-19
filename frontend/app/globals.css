@@ -1,0 +1,126 @@
+@import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&family=JetBrains+Mono:wght@400;500;700&display=swap');
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --arcade-primary: #0066CC;
+  --arcade-secondary: #CC0066;
+  --arcade-bg: #FAF9F6;
+  --arcade-shadow: 4px 4px 0 #003366;
+  --arcade-shadow-pink: 4px 4px 0 #880044;
+}
+
+body {
+  background-color: var(--arcade-bg);
+  font-family: 'JetBrains Mono', monospace;
+  color: #0A0A0A;
+}
+
+h1, h2, h3, .pixel {
+  font-family: 'Press Start 2P', monospace;
+}
+
+.arcade-card {
+  background: white;
+  border: 2px solid #0066CC;
+  box-shadow: 4px 4px 0 #003366;
+  border-radius: 0;
+}
+
+.arcade-btn-primary {
+  background: #0066CC;
+  color: white;
+  border: 2px solid #003366;
+  box-shadow: 4px 4px 0 #003366;
+  font-family: 'Press Start 2P', monospace;
+  font-size: 10px;
+  padding: 12px 24px;
+  cursor: pointer;
+  transition: transform 0.1s, box-shadow 0.1s;
+  border-radius: 0;
+  text-transform: uppercase;
+}
+
+.arcade-btn-primary:active {
+  transform: translate(4px, 4px);
+  box-shadow: 0 0 0 #003366;
+}
+
+.arcade-btn-primary:hover {
+  background: #0052a3;
+}
+
+.arcade-btn-secondary {
+  background: white;
+  color: #CC0066;
+  border: 2px solid #CC0066;
+  box-shadow: 4px 4px 0 #880044;
+  font-family: 'Press Start 2P', monospace;
+  font-size: 10px;
+  padding: 12px 24px;
+  cursor: pointer;
+  transition: transform 0.1s, box-shadow 0.1s;
+  border-radius: 0;
+  text-transform: uppercase;
+}
+
+.arcade-btn-secondary:active {
+  transform: translate(4px, 4px);
+  box-shadow: 0 0 0 #880044;
+}
+
+.arcade-input {
+  background: white;
+  border: 2px solid #0066CC;
+  border-radius: 0;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 14px;
+  padding: 10px 14px;
+  width: 100%;
+  color: #0A0A0A;
+  outline: none;
+}
+
+.arcade-input:focus {
+  border-color: #CC0066;
+  box-shadow: 2px 2px 0 #880044;
+}
+
+.scanline {
+  position: relative;
+}
+
+.scanline::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: repeating-linear-gradient(
+    0deg,
+    transparent,
+    transparent 2px,
+    rgba(0,0,0,0.03) 2px,
+    rgba(0,0,0,0.03) 4px
+  );
+  pointer-events: none;
+  z-index: 1;
+}
+
+.blink {
+  animation: blink 1s step-end infinite;
+}
+
+@keyframes blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0; }
+}
+
+.ticker {
+  white-space: nowrap;
+  animation: ticker 20s linear infinite;
+}
+
+@keyframes ticker {
+  from { transform: translateX(100%); }
+  to { transform: translateX(-100%); }
+}
