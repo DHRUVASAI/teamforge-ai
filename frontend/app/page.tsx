@@ -120,7 +120,7 @@ export default function Home() {
       </nav>
 
       {/* HERO SECTION */}
-      <section className="scanline" style={{ minHeight: '85vh', display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'relative', overflow: 'hidden' }}>
+      <section className="scanline" style={{ minHeight: '85vh', display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'relative', overflow: 'hidden', padding: '80px 0' }}>
         
         {/* Abstract Background Grid */}
         <div style={{ position: 'absolute', inset: 0, backgroundSize: '40px 40px', backgroundImage: 'radial-gradient(circle, #0066CC 1px, transparent 1px)', opacity: 0.2 }} />
