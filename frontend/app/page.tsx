@@ -1,105 +1,134 @@
 "use client";
-import { useEffect, useState } from "react";
-import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { isLoggedIn, getAuth } from "@/lib/auth";
 
-export default function LandingPage() {
+import Link from "next/link";
+import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
+import { getAuth } from "@/lib/auth";
+
+export default function Home() {
   const router = useRouter();
-  const [mounted, setMounted] = useState(false);
+  const [isAuth, setIsAuth] = useState(false);
   const [scrollPos, setScrollPos] = useState(0);
-  const [authed, setAuthed] = useState(false);
+
+  // Demo State
+  const [demoIdea, setDemoIdea] = useState("");
+  const [demoTime, setDemoTime] = useState("1 Week");
+  const [isDemoRunning, setIsDemoRunning] = useState(false);
+  const [demoOutput, setDemoOutput] = useState("");
 
   useEffect(() => {
-    setMounted(true);
-    setAuthed(isLoggedIn());
-    const handleScroll = () => setScrollPos(window.scrollY);
-    window.addEventListener("scroll", handleScroll);
-    return () => window.removeEventListener("scroll", handleScroll);
+    setIsAuth(!!getAuth());
+    
+    const handleScroll = () => {
+      setScrollPos(window.scrollY);
+    };
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
   const handleStart = () => {
-    if (isLoggedIn()) {
+    if (isAuth) {
       router.push("/dashboard");
     } else {
-      router.push("/register");
+      router.push("/login");
     }
   };
 
-  if (!mounted) return null;
+  const runDemo = () => {
+    if (!demoIdea.trim()) {
+      setDemoIdea("Please enter an idea!");
+      return;
+    }
+    setIsDemoRunning(true);
+    setDemoOutput("");
+    
+    let text = `[ SYSTEM ] Analyzing project scope for "${demoIdea}"...\n`;
+    text += `[ SYSTEM ] Time constraint detected: ${demoTime}\n`;
+    text += `[ AI ] Booting architecture module...\n\n`;
+    text += `=== RECOMMENDED STACK ===\n`;
+    text += `> FRONTEND: Next.js (React)\n`;
+    text += `> BACKEND: FastAPI (Python)\n`;
+    text += `> DATABASE: PostgreSQL\n`;
+    text += `> INFRA: Docker + AWS EC2\n\n`;
+    text += `[ AI ] Structuring ${demoTime} roadmap...\n`;
+    if (demoTime === "24 Hours") {
+      text += `> FOCUS: Hackathon mode. Skip auth, build core logic, use SQLite.\n`;
+    } else if (demoTime === "1 Week") {
+      text += `> FOCUS: MVP mode. Basic JWT auth, core features, local Postgres.\n`;
+    } else {
+      text += `> FOCUS: Enterprise mode. Full CI/CD, scalable DB, testing suite.\n`;
+    }
+    text += `\n[ READY ] Log in to generate the full interactive playbook.`;
+
+    let i = 0;
+    const interval = setInterval(() => {
+      setDemoOutput(prev => prev + text.charAt(i));
+      i++;
+      if (i >= text.length) {
+        clearInterval(interval);
+        setIsDemoRunning(false);
+      }
+    }, 20);
+  };
 
   return (
-    <div style={{ minHeight: '100vh', background: '#FAF9F6', color: '#001133', overflow: 'hidden' }}>
+    <div className="min-h-screen" style={{ background: '#FAF9F6' }}>
       
-      {/* GLOBAL ANIMATIONS */}
+      {/* GLOBAL STYLES & KEYFRAMES */}
       <style dangerouslySetInnerHTML={{__html: `
-        @keyframes floatY {
-          0%, 100% { transform: translateY(0); }
-          50% { transform: translateY(-20px); }
+        @keyframes pulseGlow {
+          0% { box-shadow: 0 0 0 0 rgba(0, 102, 204, 0.4); }
+          70% { box-shadow: 0 0 0 20px rgba(0, 102, 204, 0); }
+          100% { box-shadow: 0 0 0 0 rgba(0, 102, 204, 0); }
         }
         @keyframes slideLeft {
-          from { transform: translateX(0); }
-          to { transform: translateX(-50%); }
+          0% { transform: translateX(0); }
+          100% { transform: translateX(-50%); }
         }
         @keyframes slideRight {
-          from { transform: translateX(-50%); }
-          to { transform: translateX(0); }
-        }
-        @keyframes pulseGlow {
-          0%, 100% { box-shadow: 0 0 20px #0066CC, inset 0 0 10px #0066CC; }
-          50% { box-shadow: 0 0 40px #CC0066, inset 0 0 20px #CC0066; }
-        }
-        @keyframes scanlineMove {
-          0% { transform: translateY(-100%); }
-          100% { transform: translateY(100vh); }
+          0% { transform: translateX(-50%); }
+          100% { transform: translateX(0); }
         }
         @keyframes glitch {
-          0% { transform: translate(0); }
-          20% { transform: translate(-2px, 2px); }
-          40% { transform: translate(-2px, -2px); }
-          60% { transform: translate(2px, 2px); }
-          80% { transform: translate(2px, -2px); }
-          100% { transform: translate(0); }
+          0% { transform: translate(0) }
+          20% { transform: translate(-2px, 2px) }
+          40% { transform: translate(-2px, -2px) }
+          60% { transform: translate(2px, 2px) }
+          80% { transform: translate(2px, -2px) }
+          100% { transform: translate(0) }
         }
-        .animated-bg {
-          background-image: radial-gradient(#0066CC 1px, transparent 1px);
-          background-size: 32px 32px;
-          background-position: 0 0;
-          animation: bgMove 20s linear infinite;
-        }
-        @keyframes bgMove {
-          100% { background-position: 320px 320px; }
-        }
-        .glass-panel {
-          background: rgba(255, 255, 255, 0.9);
-          backdrop-filter: blur(10px);
-        }
+        .retro-input::placeholder { color: #888; }
+        .terminal-cursor { display: inline-block; width: 8px; height: 15px; background: #00FF41; animation: blink 1s step-end infinite; }
+        @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
       `}} />
 
-      {/* FIXED NAV */}
-      <nav className="glass-panel" style={{ position: 'fixed', top: 0, left: 0, right: 0, zIndex: 1000, padding: '24px 48px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '4px solid #001133' }}>
-        <div style={{ fontFamily: 'Press Start 2P', fontSize: '20px', color: '#0066CC', textShadow: '2px 2px 0 #001133' }}>
+      {/* HEADER */}
+      <nav style={{ padding: '24px 48px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'white', borderBottom: '4px solid #001133', position: 'sticky', top: 0, zIndex: 100 }}>
+        <div style={{ fontFamily: 'Press Start 2P', fontSize: '18px', color: '#001133' }}>
           TeamForge<span style={{ color: '#CC0066' }}>.AI</span>
         </div>
-          <div style={{ display: 'flex', gap: '24px', alignItems: 'center' }}>
-            <Link href={authed ? "/dashboard" : "/login"} style={{ fontFamily: 'JetBrains Mono', fontWeight: 'bold', fontSize: '14px', color: '#001133', textDecoration: 'none' }}>
-              {authed ? '[ MISSION CONTROL ]' : '[ LOG IN ]'}
+        <div style={{ display: 'flex', gap: '24px', alignItems: 'center' }}>
+          {!isAuth && (
+            <Link href="/login" style={{ fontFamily: 'JetBrains Mono', fontWeight: 'bold', color: '#001133', textDecoration: 'none', fontSize: '14px' }}>
+              [ LOG IN ]
             </Link>
-          <button onClick={handleStart} style={{ background: '#CC0066', color: 'white', border: '3px solid #001133', padding: '12px 24px', fontFamily: 'Press Start 2P', fontSize: '10px', cursor: 'pointer', boxShadow: '4px 4px 0 #001133', transition: 'transform 0.1s' }} onMouseDown={e => e.currentTarget.style.transform='translate(4px, 4px)'} onMouseUp={e => e.currentTarget.style.transform='translate(0, 0)'}>
-            LAUNCH SYSTEM
+          )}
+          <button onClick={handleStart} className="arcade-btn-secondary" style={{ padding: '12px 24px', fontSize: '12px' }}>
+            {isAuth ? '[ MISSION CONTROL ]' : '[ LAUNCH SYSTEM ]'}
           </button>
         </div>
       </nav>
 
       {/* HERO SECTION */}
-      <section className="animated-bg" style={{ position: 'relative', minHeight: '100vh', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', padding: '120px 24px 80px', overflow: 'hidden' }}>
+      <section className="scanline" style={{ minHeight: '85vh', display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'relative', overflow: 'hidden' }}>
         
-        {/* Decorative Grid Lines */}
-        <div style={{ position: 'absolute', top: 0, bottom: 0, left: '20%', width: '1px', background: 'rgba(0,102,204,0.2)' }} />
-        <div style={{ position: 'absolute', top: 0, bottom: 0, right: '20%', width: '1px', background: 'rgba(204,0,102,0.2)' }} />
+        {/* Abstract Background Grid */}
+        <div style={{ position: 'absolute', inset: 0, backgroundSize: '40px 40px', backgroundImage: 'radial-gradient(circle, #0066CC 1px, transparent 1px)', opacity: 0.2 }} />
+        <div style={{ position: 'absolute', left: '20%', top: 0, bottom: 0, width: '1px', background: 'rgba(0,102,204,0.2)' }} />
+        <div style={{ position: 'absolute', right: '20%', top: 0, bottom: 0, width: '1px', background: 'rgba(204,0,102,0.1)' }} />
 
-        <div style={{ zIndex: 10, textAlign: 'center', animation: 'floatY 6s ease-in-out infinite' }}>
-          <div style={{ fontFamily: 'JetBrains Mono', fontSize: '16px', color: '#CC0066', fontWeight: 'bold', marginBottom: '24px', letterSpacing: '4px', background: 'white', display: 'inline-block', padding: '8px 16px', border: '2px dashed #CC0066' }}>
+        <div style={{ position: 'relative', zIndex: 10, textAlign: 'center', padding: '0 24px' }}>
+          <div style={{ fontFamily: 'JetBrains Mono', color: '#CC0066', fontWeight: 'bold', marginBottom: '24px', letterSpacing: '4px', border: '2px dashed #CC0066', display: 'inline-block', padding: '8px 16px' }}>
             &gt; SYSTEM INITIALIZED
           </div>
           
@@ -133,6 +162,72 @@ export default function LandingPage() {
         </div>
       </div>
 
+      {/* INTERACTIVE DEMO SECTION */}
+      <section style={{ padding: '120px 48px', background: 'white', position: 'relative' }}>
+        <h2 style={{ fontFamily: 'Press Start 2P', fontSize: '32px', color: '#001133', textAlign: 'center', marginBottom: '24px' }}>[ TRY IT NOW ]</h2>
+        <p style={{ fontFamily: 'JetBrains Mono', fontSize: '16px', color: '#555', textAlign: 'center', marginBottom: '80px' }}>Simulate our AI architect right here in your browser.</p>
+
+        <div style={{ maxWidth: '1000px', margin: '0 auto', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '48px' }}>
+          
+          {/* Inputs */}
+          <div className="arcade-card" style={{ padding: '40px', background: '#f8fafc' }}>
+            <div style={{ marginBottom: '32px' }}>
+              <label style={{ fontFamily: 'Press Start 2P', fontSize: '12px', color: '#0066CC', display: 'block', marginBottom: '16px' }}>&gt; WHAT ARE YOU BUILDING?</label>
+              <textarea 
+                className="retro-input"
+                placeholder="e.g. A social network for dogs..."
+                value={demoIdea}
+                onChange={e => setDemoIdea(e.target.value)}
+                style={{ width: '100%', height: '120px', padding: '16px', border: '4px solid #001133', fontFamily: 'JetBrains Mono', fontSize: '14px', resize: 'none', outline: 'none' }}
+              />
+            </div>
+
+            <div style={{ marginBottom: '40px' }}>
+              <label style={{ fontFamily: 'Press Start 2P', fontSize: '12px', color: '#CC0066', display: 'block', marginBottom: '16px' }}>&gt; TIME LIMIT</label>
+              <div style={{ display: 'flex', gap: '16px' }}>
+                {["24 Hours", "1 Week", "1 Month"].map(t => (
+                  <button 
+                    key={t}
+                    onClick={() => setDemoTime(t)}
+                    style={{ 
+                      flex: 1, padding: '12px', border: '4px solid #001133', 
+                      background: demoTime === t ? '#CC0066' : 'white', 
+                      color: demoTime === t ? 'white' : '#001133',
+                      fontFamily: 'JetBrains Mono', fontWeight: 'bold', fontSize: '14px', cursor: 'pointer'
+                    }}
+                  >
+                    {t}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <button 
+              onClick={runDemo} 
+              disabled={isDemoRunning}
+              style={{ width: '100%', padding: '20px', background: isDemoRunning ? '#555' : '#0066CC', color: 'white', border: '4px solid #001133', fontFamily: 'Press Start 2P', fontSize: '12px', cursor: isDemoRunning ? 'not-allowed' : 'pointer', boxShadow: '8px 8px 0 #001133' }}
+            >
+              {isDemoRunning ? '[ COMPUTING... ]' : '[ SIMULATE AI ARCHITECT ]'}
+            </button>
+          </div>
+
+          {/* Terminal Output */}
+          <div style={{ background: '#001133', border: '4px solid #0066CC', padding: '32px', boxShadow: '12px 12px 0 #CC0066', position: 'relative', overflow: 'hidden' }}>
+            <div className="scanline" style={{ position: 'absolute', inset: 0, pointerEvents: 'none' }} />
+            <div style={{ display: 'flex', gap: '8px', marginBottom: '24px' }}>
+              <div style={{ width: '12px', height: '12px', background: '#CC0066', borderRadius: '50%' }} />
+              <div style={{ width: '12px', height: '12px', background: '#ebbb3d', borderRadius: '50%' }} />
+              <div style={{ width: '12px', height: '12px', background: '#00FF41', borderRadius: '50%' }} />
+            </div>
+            <pre style={{ fontFamily: 'JetBrains Mono', color: '#00FF41', fontSize: '14px', whiteSpace: 'pre-wrap', lineHeight: '1.6', minHeight: '300px' }}>
+              {demoOutput || "// System Ready.\n// Waiting for input..."}
+              {isDemoRunning && <span className="terminal-cursor" />}
+            </pre>
+          </div>
+
+        </div>
+      </section>
+
       {/* MASSIVE FEATURES GRID */}
       <section style={{ padding: '120px 48px', background: '#FAF9F6', position: 'relative' }}>
         <h2 style={{ fontFamily: 'Press Start 2P', fontSize: '32px', color: '#001133', textAlign: 'center', marginBottom: '80px' }}>[ CAPABILITIES ]</h2>
@@ -140,16 +235,16 @@ export default function LandingPage() {
         <div style={{ maxWidth: '1200px', margin: '0 auto', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(350px, 1fr))', gap: '48px' }}>
           
           {/* Feature 1 */}
-          <div style={{ background: 'white', border: '4px solid #0066CC', padding: '40px', boxShadow: '12px 12px 0 #001133', transform: `translateY(${scrollPos > 400 ? 0 : 50}px)`, opacity: scrollPos > 400 ? 1 : 0, transition: 'all 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275)' }}>
-            <div style={{ fontSize: '48px', marginBottom: '24px' }}>🗺️</div>
+          <div style={{ background: 'white', border: '4px solid #0066CC', padding: '40px', boxShadow: '12px 12px 0 #001133', transform: `translateY(${scrollPos > 800 ? 0 : 50}px)`, opacity: scrollPos > 800 ? 1 : 0, transition: 'all 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275)' }}>
+            <div style={{ fontSize: '48px', marginBottom: '24px' }}>⚡</div>
             <h3 style={{ fontFamily: 'Press Start 2P', fontSize: '14px', color: '#0066CC', marginBottom: '16px', lineHeight: '1.5' }}>DYNAMIC ARCHITECTURE</h3>
             <p style={{ fontFamily: 'JetBrains Mono', fontSize: '14px', lineHeight: '1.7', color: '#333' }}>
-              Input your problem and time limit. Whether you have 24 hours or 2 months, our AI instantly drafts the perfect stack—from simple monolithic SaaS to enterprise microservices.
+              Input your problem and time limit. Whether you have 24 hours or 2 months, our AI instantly drafts the perfect stack-from simple monolithic SaaS to enterprise microservices.
             </p>
           </div>
 
           {/* Feature 2 */}
-          <div style={{ background: 'white', border: '4px solid #CC0066', padding: '40px', boxShadow: '12px 12px 0 #001133', transform: `translateY(${scrollPos > 400 ? 0 : 50}px)`, opacity: scrollPos > 400 ? 1 : 0, transition: 'all 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275) 0.2s' }}>
+          <div style={{ background: 'white', border: '4px solid #CC0066', padding: '40px', boxShadow: '12px 12px 0 #001133', transform: `translateY(${scrollPos > 800 ? 0 : 50}px)`, opacity: scrollPos > 800 ? 1 : 0, transition: 'all 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275) 0.2s' }}>
             <div style={{ fontSize: '48px', marginBottom: '24px' }}>📋</div>
             <h3 style={{ fontFamily: 'Press Start 2P', fontSize: '14px', color: '#CC0066', marginBottom: '16px', lineHeight: '1.5' }}>INTERACTIVE PLAYBOOKS</h3>
             <p style={{ fontFamily: 'JetBrains Mono', fontSize: '14px', lineHeight: '1.7', color: '#333' }}>
@@ -158,7 +253,7 @@ export default function LandingPage() {
           </div>
 
           {/* Feature 3 */}
-          <div style={{ background: 'white', border: '4px solid #001133', padding: '40px', boxShadow: '12px 12px 0 #0066CC', transform: `translateY(${scrollPos > 400 ? 0 : 50}px)`, opacity: scrollPos > 400 ? 1 : 0, transition: 'all 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275) 0.4s' }}>
+          <div style={{ background: 'white', border: '4px solid #001133', padding: '40px', boxShadow: '12px 12px 0 #0066CC', transform: `translateY(${scrollPos > 800 ? 0 : 50}px)`, opacity: scrollPos > 800 ? 1 : 0, transition: 'all 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275) 0.4s' }}>
             <div style={{ fontSize: '48px', marginBottom: '24px' }}>🤖</div>
             <h3 style={{ fontFamily: 'Press Start 2P', fontSize: '14px', color: '#001133', marginBottom: '16px', lineHeight: '1.5' }}>AI ENGINEER MENTOR</h3>
             <p style={{ fontFamily: 'JetBrains Mono', fontSize: '14px', lineHeight: '1.7', color: '#333' }}>
@@ -199,7 +294,7 @@ export default function LandingPage() {
       {/* FOOTER */}
       <footer style={{ background: '#001133', padding: '48px', textAlign: 'center', borderTop: '4px solid white' }}>
         <div style={{ fontFamily: 'Press Start 2P', fontSize: '12px', color: 'white', marginBottom: '16px' }}>TeamForge<span style={{ color: '#CC0066' }}>.AI</span></div>
-        <div style={{ fontFamily: 'JetBrains Mono', fontSize: '10px', color: '#888' }}>© 2026. Built with NVIDIA Nemotron.</div>
+        <div style={{ fontFamily: 'JetBrains Mono', fontSize: '10px', color: '#888' }}>c 2026. Built with NVIDIA Nemotron.</div>
       </footer>
 
     </div>
