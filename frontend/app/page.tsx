@@ -164,69 +164,104 @@ export default function Home() {
 
       {/* INTERACTIVE DEMO SECTION */}
       <section style={{ padding: '120px 48px', background: 'white', position: 'relative' }}>
-        <h2 style={{ fontFamily: 'Press Start 2P', fontSize: '32px', color: '#001133', textAlign: 'center', marginBottom: '24px' }}>[ TRY IT NOW ]</h2>
-        <p style={{ fontFamily: 'JetBrains Mono', fontSize: '16px', color: '#555', textAlign: 'center', marginBottom: '80px' }}>Simulate our AI architect right here in your browser.</p>
+        <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
+          <div style={{ textAlign: 'center', marginBottom: '80px' }}>
+            <div style={{ fontFamily: 'JetBrains Mono', fontSize: '11px', color: '#CC0066', letterSpacing: '4px', marginBottom: '16px' }}>[ LIVE PREVIEW ]</div>
+            <h2 style={{ fontFamily: 'Press Start 2P', fontSize: '28px', color: '#001133', marginBottom: '20px' }}>TRY IT RIGHT NOW</h2>
+            <p style={{ fontFamily: 'JetBrains Mono', fontSize: '16px', color: '#555', maxWidth: '600px', margin: '0 auto', lineHeight: 1.8 }}>
+              No account needed. Type your idea and watch our AI architect design your entire system in real-time.
+            </p>
+          </div>
 
-        <div style={{ maxWidth: '1000px', margin: '0 auto', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '48px' }}>
-          
-          {/* Inputs */}
-          <div className="arcade-card" style={{ padding: '40px', background: '#f8fafc' }}>
-            <div style={{ marginBottom: '32px' }}>
-              <label style={{ fontFamily: 'Press Start 2P', fontSize: '12px', color: '#0066CC', display: 'block', marginBottom: '16px' }}>&gt; WHAT ARE YOU BUILDING?</label>
-              <textarea 
-                className="retro-input"
-                placeholder="e.g. A social network for dogs..."
-                value={demoIdea}
-                onChange={e => setDemoIdea(e.target.value)}
-                style={{ width: '100%', height: '120px', padding: '16px', border: '4px solid #001133', fontFamily: 'JetBrains Mono', fontSize: '14px', resize: 'none', outline: 'none' }}
-              />
-            </div>
+          <div style={{ display: 'grid', gridTemplateColumns: '420px 1fr', gap: '0px', border: '4px solid #001133', boxShadow: '12px 12px 0 #CC0066' }}>
+            
+            {/* Left — Inputs */}
+            <div style={{ padding: '48px 40px', background: '#f8fafc', borderRight: '4px solid #001133', display: 'flex', flexDirection: 'column', gap: '32px' }}>
+              <div>
+                <div style={{ fontFamily: 'Press Start 2P', fontSize: '10px', color: '#0066CC', marginBottom: '16px', letterSpacing: '1px' }}>&gt; WHAT ARE YOU BUILDING?</div>
+                <textarea
+                  placeholder="e.g. A social network for dogs with real-time barking feeds..."
+                  value={demoIdea}
+                  onChange={e => setDemoIdea(e.target.value)}
+                  style={{ width: '100%', height: '160px', padding: '16px', border: '3px solid #001133', fontFamily: 'JetBrains Mono', fontSize: '14px', resize: 'none', outline: 'none', lineHeight: 1.7, background: 'white', boxSizing: 'border-box' }}
+                />
+              </div>
 
-            <div style={{ marginBottom: '40px' }}>
-              <label style={{ fontFamily: 'Press Start 2P', fontSize: '12px', color: '#CC0066', display: 'block', marginBottom: '16px' }}>&gt; TIME LIMIT</label>
-              <div style={{ display: 'flex', gap: '16px' }}>
-                {["24 Hours", "1 Week", "1 Month"].map(t => (
-                  <button 
-                    key={t}
-                    onClick={() => setDemoTime(t)}
-                    style={{ 
-                      flex: 1, padding: '12px', border: '4px solid #001133', 
-                      background: demoTime === t ? '#CC0066' : 'white', 
-                      color: demoTime === t ? 'white' : '#001133',
-                      fontFamily: 'JetBrains Mono', fontWeight: 'bold', fontSize: '14px', cursor: 'pointer'
-                    }}
-                  >
-                    {t}
-                  </button>
-                ))}
+              <div>
+                <div style={{ fontFamily: 'Press Start 2P', fontSize: '10px', color: '#CC0066', marginBottom: '16px', letterSpacing: '1px' }}>&gt; TIME LIMIT</div>
+                <div style={{ display: 'flex', gap: '12px' }}>
+                  {["24 Hours", "1 Week", "1 Month"].map(t => (
+                    <button
+                      key={t}
+                      onClick={() => setDemoTime(t)}
+                      style={{
+                        flex: 1, padding: '14px 8px', border: '3px solid #001133',
+                        background: demoTime === t ? '#CC0066' : 'white',
+                        color: demoTime === t ? 'white' : '#001133',
+                        fontFamily: 'JetBrains Mono', fontWeight: 'bold', fontSize: '13px', cursor: 'pointer',
+                        transition: 'all 0.1s'
+                      }}
+                    >
+                      {t}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div>
+                <div style={{ fontFamily: 'Press Start 2P', fontSize: '10px', color: '#001133', marginBottom: '16px', letterSpacing: '1px' }}>&gt; TEAM SIZE</div>
+                <div style={{ display: 'flex', gap: '12px' }}>
+                  {["Solo", "2-4", "5+"].map(s => (
+                    <button key={s} style={{ flex: 1, padding: '14px 8px', border: '3px solid #001133', background: s === 'Solo' ? '#0066CC' : 'white', color: s === 'Solo' ? 'white' : '#001133', fontFamily: 'JetBrains Mono', fontWeight: 'bold', fontSize: '13px', cursor: 'pointer' }}>
+                      {s}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div style={{ flex: 1 }} />
+
+              <button
+                onClick={runDemo}
+                disabled={isDemoRunning}
+                style={{ width: '100%', padding: '22px', background: isDemoRunning ? '#555' : '#0066CC', color: 'white', border: '4px solid #001133', fontFamily: 'Press Start 2P', fontSize: '11px', cursor: isDemoRunning ? 'not-allowed' : 'pointer', boxShadow: isDemoRunning ? 'none' : '6px 6px 0 #001133', transition: 'all 0.1s' }}
+              >
+                {isDemoRunning ? '[ AI THINKING... ]' : '[ SIMULATE AI ARCHITECT ]'}
+              </button>
+
+              <div style={{ fontFamily: 'JetBrains Mono', fontSize: '11px', color: '#999', textAlign: 'center', lineHeight: 1.6 }}>
+                ↑ Free preview. No signup required.
               </div>
             </div>
 
-            <button 
-              onClick={runDemo} 
-              disabled={isDemoRunning}
-              style={{ width: '100%', padding: '20px', background: isDemoRunning ? '#555' : '#0066CC', color: 'white', border: '4px solid #001133', fontFamily: 'Press Start 2P', fontSize: '12px', cursor: isDemoRunning ? 'not-allowed' : 'pointer', boxShadow: '8px 8px 0 #001133' }}
-            >
-              {isDemoRunning ? '[ COMPUTING... ]' : '[ SIMULATE AI ARCHITECT ]'}
-            </button>
-          </div>
+            {/* Right — Terminal Output */}
+            <div style={{ background: '#0a0e1a', display: 'flex', flexDirection: 'column', minHeight: '600px' }}>
+              {/* Terminal chrome bar */}
+              <div style={{ background: '#1a1f2e', padding: '12px 20px', display: 'flex', alignItems: 'center', gap: '12px', borderBottom: '2px solid #0066CC', flexShrink: 0 }}>
+                <div style={{ display: 'flex', gap: '8px' }}>
+                  <div style={{ width: '12px', height: '12px', background: '#CC0066', borderRadius: '50%' }} />
+                  <div style={{ width: '12px', height: '12px', background: '#ebbb3d', borderRadius: '50%' }} />
+                  <div style={{ width: '12px', height: '12px', background: '#00FF41', borderRadius: '50%' }} />
+                </div>
+                <span style={{ fontFamily: 'JetBrains Mono', fontSize: '12px', color: 'rgba(255,255,255,0.4)', marginLeft: '8px' }}>teamforge-ai ~ output</span>
+                <div style={{ marginLeft: 'auto', display: 'flex', gap: '8px' }}>
+                  <span style={{ fontFamily: 'JetBrains Mono', fontSize: '10px', color: '#00FF41', padding: '2px 8px', border: '1px solid #00FF41' }}>● LIVE</span>
+                </div>
+              </div>
 
-          {/* Terminal Output */}
-          <div style={{ background: '#001133', border: '4px solid #0066CC', padding: '32px', boxShadow: '12px 12px 0 #CC0066', position: 'relative', overflow: 'hidden' }}>
-            <div className="scanline" style={{ position: 'absolute', inset: 0, pointerEvents: 'none' }} />
-            <div style={{ display: 'flex', gap: '8px', marginBottom: '24px' }}>
-              <div style={{ width: '12px', height: '12px', background: '#CC0066', borderRadius: '50%' }} />
-              <div style={{ width: '12px', height: '12px', background: '#ebbb3d', borderRadius: '50%' }} />
-              <div style={{ width: '12px', height: '12px', background: '#00FF41', borderRadius: '50%' }} />
+              {/* Terminal body */}
+              <div style={{ flex: 1, padding: '32px', overflowY: 'auto', position: 'relative' }}>
+                <div className="scanline" style={{ position: 'absolute', inset: 0, pointerEvents: 'none', opacity: 0.3 }} />
+                <pre style={{ fontFamily: 'JetBrains Mono', color: '#00FF41', fontSize: '14px', whiteSpace: 'pre-wrap', lineHeight: '1.8', margin: 0 }}>
+                  {demoOutput || `// ═══════════════════════════════════════════\n// TEAMFORGE AI — ARCHITECTURE SIMULATOR\n// ═══════════════════════════════════════════\n//\n// Status  : ONLINE\n// Engines : NVIDIA + Gemini + Groq\n// Layers  : 7 / 7 Active\n//\n// ─────────────────────────────────────────\n//\n// Type your project idea on the left and\n// click [ SIMULATE AI ARCHITECT ] to watch\n// the AI design your full tech stack,\n// architecture, and development plan\n// in real-time.\n//\n// ─────────────────────────────────────────\n// Waiting for input...`}
+                  {isDemoRunning && <span className="blink">█</span>}
+                </pre>
+              </div>
             </div>
-            <pre style={{ fontFamily: 'JetBrains Mono', color: '#00FF41', fontSize: '14px', whiteSpace: 'pre-wrap', lineHeight: '1.6', minHeight: '300px' }}>
-              {demoOutput || "// System Ready.\n// Waiting for input..."}
-              {isDemoRunning && <span className="terminal-cursor" />}
-            </pre>
           </div>
-
         </div>
       </section>
+
 
       {/* MASSIVE FEATURES GRID */}
       <section style={{ padding: '120px 48px', background: '#FAF9F6', position: 'relative' }}>
