@@ -207,8 +207,26 @@ export default function MissionDetail() {
               </div>
             ) : (
               <div className="arcade-card" style={{ padding: '32px', background: 'white', border: '3px solid #0066CC' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px', flexWrap: 'wrap', gap: '16px' }}>
                   <h2 style={{ fontFamily: 'Press Start 2P', fontSize: '16px', color: '#0066CC' }} className="blink">[ AI IS THINKING... ]</h2>
+                  <div style={{ display: 'flex', gap: '12px' }}>
+                    {loadMode && loadMode !== 'choice' && (
+                      <button 
+                        onClick={() => setLoadMode(loadMode === 'game' ? 'terminal' : 'game')} 
+                        className="arcade-btn-secondary" 
+                        style={{ padding: '8px 12px', fontSize: '10px', boxShadow: '2px 2px 0 #880044' }}
+                      >
+                        {loadMode === 'game' ? '[ VIEW TERMINAL ]' : '[ PLAY SNAKE ]'}
+                      </button>
+                    )}
+                    <Link 
+                      href={`/dashboard/${id}/playbook`} 
+                      className="arcade-btn-secondary" 
+                      style={{ textDecoration: 'none', padding: '8px 12px', fontSize: '10px', boxShadow: '2px 2px 0 #003366', color: '#0066CC', borderColor: '#0066CC' }}
+                    >
+                      [ GO TO PLAYBOOK ]
+                    </Link>
+                  </div>
                 </div>
 
                 {loadMode === 'choice' && (
