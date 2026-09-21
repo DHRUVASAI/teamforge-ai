@@ -12,11 +12,11 @@ const C = {
   dot:      "#cfcdc4",
 };
 
+// Exact boot lines from user's provided HTML
 const BOOT_LINES = [
-  { text: "> BOOTING TEAMFORGE.AI v2.0",        ok: false },
-  { text: "> LOADING 7-LAYER AI PIPELINE...",    ok: true  },
-  { text: "> NVIDIA + GEMINI + GROQ ONLINE",     ok: true  },
-  { text: "> ALL SQUAD ENGINES READY",           ok: true  },
+  { text: "> BOOTING TEAMFORGE.AI",      ok: false },
+  { text: "> LOADING NEMOTRON CORE...",  ok: true  },
+  { text: "> SYNCING SQUAD...",          ok: true  },
 ];
 
 interface Props { onDone: () => void; }
@@ -109,6 +109,7 @@ export default function IntroOverlay({ onDone }: Props) {
     const h = hammerRef.current;
     if (!h) return;
     h.classList.remove("tf-hammer-hit");
+    // Trigger reflow to restart CSS animation
     void (h as unknown as HTMLElement).offsetWidth;
     h.classList.add("tf-hammer-hit");
     await sleep(280);
@@ -211,6 +212,10 @@ export default function IntroOverlay({ onDone }: Props) {
           animation:tf-spark 0.6s steps(6) forwards;
         }
         .tf-shake  { animation:tf-shake 0.24s steps(4); }
+        .tf-hammer {
+          transform-origin: 100% 50%;
+          transform: rotate(55deg);
+        }
         .tf-hammer-hit { animation:tf-swing 0.28s steps(4) forwards !important; }
         .tf-logo-on {
           visibility:visible !important;
@@ -280,7 +285,7 @@ export default function IntroOverlay({ onDone }: Props) {
             ref={bootRef}
             style={{
               gridArea:"1/1", width:"min(92vw,520px)", padding:"20px 24px",
-              border:`2px dashed ${C.mag}`, background:C.paper,
+              border:`2px dashed ${C.mag}`, background:C.paper, color:C.ink,
               fontSize:"14px", lineHeight:"1.95", visibility:"hidden",
             }}
           >
@@ -290,8 +295,8 @@ export default function IntroOverlay({ onDone }: Props) {
           {/* Forge + Logo */}
           <div ref={rigRef} style={{ gridArea:"1/1", display:"flex", flexDirection:"column", alignItems:"center" }}>
             <div ref={sceneRef} style={{ opacity:0 }}>
-              {/* Forge container — u = 10px */}
-              <div style={{ position:"relative", width:"320px", height:"180px" }}>
+              {/* Forge container */}
+              <div style={{ position:"relative", width:"320px", height:"180px", marginTop: "140px" }}>
                 {/* Anvil */}
                 <svg
                   viewBox="0 0 32 18" shapeRendering="crispEdges"
@@ -316,10 +321,10 @@ export default function IntroOverlay({ onDone }: Props) {
                 {/* Hammer */}
                 <svg
                   ref={hammerRef} viewBox="0 0 30 8" shapeRendering="crispEdges"
+                  className="tf-hammer"
                   style={{
                     position:"absolute", left:"100px", top:"12px",
-                    width:"180px", height:"48px",
-                    transformOrigin:"100% 50%", transform:"rotate(55deg)",
+                    width:"180px", height:"48px"
                   }}
                 >
                   <rect x="0"  y="0" width="10" height="8" fill={C.ink}/>
