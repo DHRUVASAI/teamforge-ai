@@ -1,7 +1,7 @@
 import axios from "axios";
 
 const api = axios.create({
-  baseURL: process.env.NEXT_PUBLIC_API_URL || "https://98-89-3-167.nip.io/api/v1",
+  baseURL: process.env.NEXT_PUBLIC_API_URL || "https://3-80-24-197.nip.io/api/v1",
 });
 
 api.interceptors.request.use((config) => {
