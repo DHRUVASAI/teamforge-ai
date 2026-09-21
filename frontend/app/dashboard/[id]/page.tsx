@@ -18,63 +18,13 @@ interface Project {
 }
 
 const SnakeGame = () => {
-  const [snake, setSnake] = useState([{x:10, y:10}]);
-  const [food, setFood] = useState({x:5, y:5});
-  const [dir, setDir] = useState({x:0, y:-1});
-  const [gameOver, setGameOver] = useState(false);
-  const [started, setStarted] = useState(false);
-
-  useEffect(() => {
-    const handleKeyDown = (e: any) => {
-      if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(e.key)) {
-        e.preventDefault();
-        setStarted(true);
-      }
-      switch(e.key) {
-        case 'ArrowUp': if(dir.y!==1) setDir({x:0,y:-1}); break;
-        case 'ArrowDown': if(dir.y!==-1) setDir({x:0,y:1}); break;
-        case 'ArrowLeft': if(dir.x!==1) setDir({x:-1,y:0}); break;
-        case 'ArrowRight': if(dir.x!==-1) setDir({x:1,y:0}); break;
-      }
-    };
-    window.addEventListener('keydown', handleKeyDown, { passive: false });
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [dir]);
-
-  useEffect(() => {
-    if (gameOver || !started) return;
-    const interval = setInterval(() => {
-      setSnake(s => {
-        const head = s[0];
-        const newHead = { x: head.x + dir.x, y: head.y + dir.y };
-        if (newHead.x < 0 || newHead.x >= 20 || newHead.y < 0 || newHead.y >= 20) {
-          setGameOver(true); return s;
-        }
-        for (let segment of s) if (newHead.x === segment.x && newHead.y === segment.y) {
-          setGameOver(true); return s;
-        }
-        const newSnake = [newHead, ...s];
-        if (newHead.x === food.x && newHead.y === food.y) {
-          setFood({ x: Math.floor(Math.random()*20), y: Math.floor(Math.random()*20) });
-        } else {
-          newSnake.pop();
-        }
-        return newSnake;
-      });
-    }, 150);
-    return () => clearInterval(interval);
-  }, [dir, food, gameOver, started]);
-
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-      {!started && <div style={{ fontFamily: 'Press Start 2P', color: '#0066CC', marginBottom: '16px', fontSize: '12px' }} className="blink">PRESS ARROW KEY TO START</div>}
-      <div style={{ position: 'relative', width: 400, height: 400, background: 'white', border: '3px solid #0066CC', boxShadow: '4px 4px 0 #003366' }}>
-        {gameOver && <div style={{ position:'absolute', inset:0, display:'flex', alignItems:'center', justifyContent:'center', color:'#CC0066', fontFamily:'Press Start 2P', background: 'rgba(250,249,246,0.9)', zIndex: 10 }}>GAME OVER</div>}
-        <div style={{ position:'absolute', width:20, height:20, background:'#CC0066', left: food.x*20, top: food.y*20, border: '2px solid #880044' }} />
-        {snake.map((s, i) => (
-          <div key={i} style={{ position:'absolute', width:20, height:20, background: i === 0 ? '#003366' : '#0066CC', left: s.x*20, top: s.y*20, border: '1px solid #FAF9F6' }} />
-        ))}
-      </div>
+    <div style={{ width: '100%', minHeight: '680px', position: 'relative', border: '3px solid #001233', overflow: 'hidden', background: '#f4f2f0' }}>
+      <iframe 
+        src="/snake-game.html" 
+        style={{ width: '100%', height: '100%', border: 'none', outline: 'none', position: 'absolute', top: 0, left: 0 }}
+        title="Squad Snake"
+      />
     </div>
   );
 };
