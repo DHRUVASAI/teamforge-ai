@@ -49,7 +49,7 @@ export default function SquadSnake() {
     bestEl.textContent = pad3(best);
 
     const C = { 
-      paper: "#f4f2f0", 
+      paper: "#ffffff", 
       ink: "#001233", 
       blue: "#0065cc", 
       soft: "#aecae7", 
@@ -313,19 +313,16 @@ export default function SquadSnake() {
   }, []);
 
   return (
-    <div ref={containerRef} className="tf-snake-widget w-full flex flex-col items-center p-4">
+    <div ref={containerRef} className="tf-snake-widget w-full flex flex-col items-center">
       <style>{`
         .tf-snake-widget {
           font-family: 'JetBrains Mono', monospace;
-          background: #f4f2f0;
-          border: 2px solid #001233;
-          background-image: radial-gradient(circle,#d3d1cd 1px,transparent 1.6px),repeating-linear-gradient(0deg,rgba(0,18,51,.03) 0 1px,transparent 1px 3px);
-          background-size: 24px 24px,auto;
+          width: 100%;
         }
         
         .tf-snake-hud { display: flex; gap: 14px; width: 100%; max-width: 440px; margin-bottom: 16px; }
         .tf-snake-stat {
-          flex: 1; border: 2px dashed #c90068; padding: 8px 10px 6px; background: rgba(255,255,255,.8); text-align: left;
+          flex: 1; border: 2px dashed #c90068; padding: 8px 10px 6px; background: #ffffff; text-align: left;
         }
         .tf-snake-stat small { display: block; font-size: 11px; letter-spacing: .14em; color: #3a3f52; margin-bottom: 4px; }
         .tf-snake-stat b { font-family: 'Press Start 2P', monospace; font-weight: 700; font-size: 20px; line-height: 1.15; color: #001233; }
@@ -334,7 +331,7 @@ export default function SquadSnake() {
 
         .tf-snake-board {
           position: relative; width: 100%; max-width: 440px; aspect-ratio: 1;
-          border: 4px solid #001233; box-shadow: 8px 8px 0 #aecae7; background: #f4f2f0;
+          border: 4px solid #001233; box-shadow: 8px 8px 0 #aecae7; background: #ffffff;
         }
         .tf-snake-board.tf-shake { animation: tf-shake .3s steps(5); }
         @keyframes tf-shake {
@@ -349,12 +346,12 @@ export default function SquadSnake() {
         
         .tf-snake-overlay {
           position: absolute; inset: 0; display: grid; place-items: center; padding: 16px;
-          background: rgba(244, 242, 240, 0.78);
+          background: rgba(255, 255, 255, 0.78);
         }
         .tf-snake-overlay[hidden] { display: none !important; }
         
         .tf-snake-panel {
-          width: min(100%,360px); padding: 22px 20px; border: 2px dashed #c90068; background: #f4f2f0; text-align: center;
+          width: min(100%,360px); padding: 22px 20px; border: 2px dashed #c90068; background: #ffffff; text-align: center;
         }
         .tf-snake-panel h2 { margin: 0; font-family: 'Press Start 2P', monospace; font-weight: 700; font-size: 22px; letter-spacing: .06em; color: #c90068; }
         .tf-snake-panel p { margin: 12px 0 0; font-size: 13px; line-height: 1.8; color: #3a3f52; }
