@@ -36,29 +36,89 @@ export default function Home() {
 
   const runDemo = () => {
     if (!demoIdea.trim()) {
-      setDemoIdea("Please enter an idea!");
+      setDemoIdea("Please enter a project idea first!");
       return;
     }
     setIsDemoRunning(true);
     setDemoOutput("");
-    
-    let text = `[ SYSTEM ] Analyzing project scope for "${demoIdea}"...\n`;
-    text += `[ SYSTEM ] Time constraint detected: ${demoTime}\n`;
-    text += `[ AI ] Booting architecture module...\n\n`;
-    text += `=== RECOMMENDED STACK ===\n`;
-    text += `> FRONTEND: Next.js (React)\n`;
-    text += `> BACKEND: FastAPI (Python)\n`;
-    text += `> DATABASE: PostgreSQL\n`;
-    text += `> INFRA: Docker + AWS EC2\n\n`;
-    text += `[ AI ] Structuring ${demoTime} roadmap...\n`;
-    if (demoTime === "24 Hours") {
-      text += `> FOCUS: Hackathon mode. Skip auth, build core logic, use SQLite.\n`;
-    } else if (demoTime === "1 Week") {
-      text += `> FOCUS: MVP mode. Basic JWT auth, core features, local Postgres.\n`;
-    } else {
-      text += `> FOCUS: Enterprise mode. Full CI/CD, scalable DB, testing suite.\n`;
+
+    const idea = demoIdea.toLowerCase();
+
+    // Smart stack detection based on idea keywords
+    let frontend = "Next.js 14 (React)";
+    let backend = "FastAPI (Python)";
+    let database = "PostgreSQL";
+    let infra = "Docker + AWS EC2";
+    let special = "";
+
+    if (idea.includes("mobile") || idea.includes("app") || idea.includes("ios") || idea.includes("android")) {
+      frontend = "React Native (Expo)";
+      backend = "FastAPI (Python)";
+      database = "PostgreSQL + Redis cache";
+      infra = "AWS ECS + CloudFront";
+      special = "> PUSH NOTIFICATIONS: Firebase Cloud Messaging\n";
+    } else if (idea.includes("game") || idea.includes("gaming") || idea.includes("multiplayer")) {
+      frontend = "React + Phaser.js";
+      backend = "Node.js + Socket.io";
+      database = "Redis (real-time) + PostgreSQL";
+      infra = "AWS GameLift";
+      special = "> REAL-TIME: WebSocket rooms for multiplayer sync\n";
+    } else if (idea.includes("ai") || idea.includes("ml") || idea.includes("chat") || idea.includes("bot")) {
+      frontend = "Next.js 14 (React)";
+      backend = "FastAPI + LangChain";
+      database = "PostgreSQL + Pinecone (vector DB)";
+      infra = "AWS EC2 + GPU instance";
+      special = "> VECTOR STORE: Embeddings for semantic search\n";
+    } else if (idea.includes("shop") || idea.includes("ecommerce") || idea.includes("store") || idea.includes("sell")) {
+      frontend = "Next.js 14 (React)";
+      backend = "FastAPI (Python)";
+      database = "PostgreSQL + Redis";
+      infra = "Vercel + AWS RDS";
+      special = "> PAYMENTS: Stripe integration required\n";
+    } else if (idea.includes("social") || idea.includes("network") || idea.includes("community") || idea.includes("feed")) {
+      frontend = "Next.js 14 (React)";
+      backend = "FastAPI + WebSockets";
+      database = "PostgreSQL + Redis (feed caching)";
+      infra = "AWS EC2 + S3 (media)";
+      special = "> REAL-TIME FEED: Redis pub/sub for live updates\n";
+    } else if (idea.includes("dashboard") || idea.includes("analytics") || idea.includes("data") || idea.includes("chart")) {
+      frontend = "Next.js + Recharts";
+      backend = "FastAPI (Python)";
+      database = "PostgreSQL + ClickHouse (analytics)";
+      infra = "AWS EC2 + CloudFront";
+      special = "> ANALYTICS ENGINE: ClickHouse for high-speed queries\n";
     }
-    text += `\n[ READY ] Log in to generate the full interactive playbook.`;
+
+    const taskCount = demoTime === "24 Hours" ? 8 : demoTime === "1 Week" ? 18 : 42;
+    const focusMode = demoTime === "24 Hours"
+      ? "HACKATHON MODE: Skip auth boilerplate. Build core loop first. SQLite OK."
+      : demoTime === "1 Week"
+      ? "MVP MODE: JWT auth + core features. Local Postgres. Ship fast."
+      : "ENTERPRISE MODE: Full CI/CD pipeline. Scalable DB. E2E test suite.";
+
+    let text = `[ TEAMFORGE AI ] Analyzing: "${demoIdea}"\n`;
+    text += `[ SYSTEM ] Time budget: ${demoTime} | Generating architecture...\n\n`;
+    text += `╔══════════════════════════════════╗\n`;
+    text += `║     RECOMMENDED TECH STACK       ║\n`;
+    text += `╚══════════════════════════════════╝\n\n`;
+    text += `> FRONTEND  : ${frontend}\n`;
+    text += `> BACKEND   : ${backend}\n`;
+    text += `> DATABASE  : ${database}\n`;
+    text += `> INFRA     : ${infra}\n`;
+    if (special) text += special;
+    text += `\n[ AI ] Structuring ${demoTime} roadmap...\n`;
+    text += `> ${focusMode}\n\n`;
+    text += `╔══════════════════════════════════╗\n`;
+    text += `║     PHASE BREAKDOWN              ║\n`;
+    text += `╚══════════════════════════════════╝\n\n`;
+    text += `> Phase 1 : Setup & Auth\n`;
+    text += `> Phase 2 : Core Feature Build\n`;
+    text += `> Phase 3 : UI & Integration\n`;
+    if (demoTime !== "24 Hours") text += `> Phase 4 : Testing & Deploy\n`;
+    if (demoTime === "1 Month") text += `> Phase 5 : Scale & Optimize\n`;
+    text += `\n[ COMPLETE ] ${taskCount} micro-tasks generated across all phases.\n`;
+    text += `\n> Log in to get the FULL interactive playbook with\n`;
+    text += `  AI prompts, task assignments, and risk analysis. →`;
 
     let i = 0;
     const interval = setInterval(() => {
@@ -68,7 +128,7 @@ export default function Home() {
         clearInterval(interval);
         setIsDemoRunning(false);
       }
-    }, 20);
+    }, 12);
   };
 
   return (
