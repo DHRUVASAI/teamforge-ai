@@ -1,14 +1,18 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { getAuth } from "@/lib/auth";
+import IntroOverlay from "@/components/IntroOverlay";
+import FullscreenLoader, { type LoaderHandle } from "@/components/FullscreenLoader";
 
 export default function Home() {
   const router = useRouter();
-  const [isAuth, setIsAuth] = useState(false);
+  const [isAuth,    setIsAuth]    = useState(false);
   const [scrollPos, setScrollPos] = useState(0);
+  const [showIntro, setShowIntro] = useState(true);
+  const loaderRef = useRef<LoaderHandle>(null);
 
   // Demo State
   const [demoIdea, setDemoIdea] = useState("");
@@ -27,12 +31,16 @@ export default function Home() {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  const handleStart = () => {
-    if (isAuth) {
-      router.push("/dashboard");
-    } else {
-      router.push("/login");
-    }
+  const handleStart = async () => {
+    const l = loaderRef.current?.show([
+      "> INITIALIZING MISSION CONTROL",
+      "> LOADING AI PIPELINE",
+      "> PREPARING YOUR SQUAD",
+      "> ALMOST READY...",
+    ]);
+    await new Promise(r => setTimeout(r, 2800));
+    await l?.done();
+    router.push(isAuth ? "/dashboard" : "/register");
   };
 
   const runDemo = () => {
@@ -144,6 +152,13 @@ export default function Home() {
 
   return (
     <div className="min-h-screen" style={{ background: '#FAF9F6' }}>
+
+      {/* ── Intro animation (first visit only) ── */}
+      {showIntro && <IntroOverlay onDone={() => setShowIntro(false)} />}
+
+      {/* ── Full-screen loader (START MISSION, etc.) ── */}
+      <FullscreenLoader ref={loaderRef} />
+
       
       {/* GLOBAL STYLES & KEYFRAMES */}
       <style dangerouslySetInnerHTML={{__html: `
