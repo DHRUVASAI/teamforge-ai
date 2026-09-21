@@ -16,18 +16,7 @@ interface Project {
   time_budget_unit?: string;
   constraints?: string[];
 }
-
-const SnakeGame = () => {
-  return (
-    <div style={{ width: '100%', minHeight: '680px', position: 'relative', border: '3px solid #001233', overflow: 'hidden', background: '#f4f2f0' }}>
-      <iframe 
-        src="/snake-game.html" 
-        style={{ width: '100%', height: '100%', border: 'none', outline: 'none', position: 'absolute', top: 0, left: 0 }}
-        title="Squad Snake"
-      />
-    </div>
-  );
-};
+import SquadSnake from "@/components/SquadSnake";
 
 export default function MissionDetail() {
   const router = useRouter();
@@ -232,7 +221,7 @@ export default function MissionDetail() {
                   </div>
                 )}
 
-                {loadMode === 'game' && <SnakeGame />}
+                {loadMode === 'game' && <SquadSnake />}
 
                 {loadMode === 'terminal' && (
                   <div style={{ background: '#f8fafc', border: '2px solid #cbd5e1', padding: '24px', position: 'relative', overflow: 'hidden' }}>
