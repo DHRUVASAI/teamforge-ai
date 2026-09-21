@@ -1,27 +1,37 @@
 "use client";
 import { useEffect, useRef } from "react";
 
-// TeamForge color palette
+// TeamForge palette, sampled from the landing page screenshot
 const C = {
-  blue:     "#0066CC",
-  mag:      "#CC0066",
-  magDeep:  "#880044",
-  ink:      "#001133",
-  paper:    "#FAF9F6",
-  blueSoft: "rgba(0,102,204,0.22)",
-  dot:      "#cfcdc4",
+  blue:     "#0065CC",
+  mag:      "#C90068",
+  magDeep:  "#950048",
+  ink:      "#001233",
+  paper:    "#F4F2F0",
+  blueSoft: "#AECAE7",
+  dot:      "#D3D1CD",
 };
 
-// Exact boot lines from user's provided HTML
+// Same dotted grid + faint scanlines as the page background
+const PAPER_BG = `radial-gradient(circle,${C.dot} 1px,transparent 1.6px),repeating-linear-gradient(0deg,rgba(0,18,51,.03) 0 1px,transparent 1px 3px)`;
+
 const BOOT_LINES = [
-  { text: "> BOOTING TEAMFORGE.AI",      ok: false },
-  { text: "> LOADING NEMOTRON CORE...",  ok: true  },
-  { text: "> SYNCING SQUAD...",          ok: true  },
+  { text: "> BOOTING TEAMFORGE.AI v2.0",        ok: false },
+  { text: "> LOADING 7-LAYER AI PIPELINE...",    ok: true  },
+  { text: "> NVIDIA + GEMINI + GROQ ONLINE",     ok: true  },
+  { text: "> ALL SQUAD ENGINES READY",           ok: true  },
 ];
 
-interface Props { onDone: () => void; }
+// Bumped from "tf-intro": an older version already saved that flag, which made the new intro skip itself.
+const SEEN_KEY = "tf-intro-v2";
 
-export default function IntroOverlay({ onDone }: Props) {
+interface Props {
+  onDone: () => void;
+  /** Optional: fires when the tile dissolve starts, so you can begin your hero reveal underneath it. */
+  onReveal?: () => void;
+}
+
+export default function IntroOverlay({ onDone, onReveal }: Props) {
   const overlayRef   = useRef<HTMLDivElement>(null);
   const tilesRef     = useRef<HTMLDivElement>(null);
   const stageRef     = useRef<HTMLDivElement>(null);
@@ -35,14 +45,22 @@ export default function IntroOverlay({ onDone }: Props) {
   const hotRectRef   = useRef<SVGRectElement>(null);
   const logoRef      = useRef<HTMLDivElement>(null);
 
-  const skipRef   = useRef(false);
-  const wakersRef = useRef<Array<() => void>>([]);
+  const skipRef    = useRef(false);
+  const doneRef    = useRef(false);
+  const wakersRef  = useRef<Array<() => void>>([]);
+  const onDoneRef  = useRef(onDone);
+  const onRevealRef = useRef(onReveal);
+  onDoneRef.current = onDone;
+  onRevealRef.current = onReveal;
 
+  // Runs once, no matter how many times it is called (skip click + timeline end, StrictMode, etc.)
   const finish = () => {
+    if (doneRef.current) return;
+    doneRef.current = true;
     const el = overlayRef.current;
     if (el) el.style.display = "none";
-    try { sessionStorage.setItem("tf-intro", "1"); } catch {}
-    onDone();
+    try { sessionStorage.setItem(SEEN_KEY, "1"); } catch {}
+    onDoneRef.current();
   };
 
   const skip = () => {
@@ -109,20 +127,16 @@ export default function IntroOverlay({ onDone }: Props) {
     const h = hammerRef.current;
     if (!h) return;
     h.classList.remove("tf-hammer-hit");
-    // Trigger reflow to restart CSS animation
-    void (h as unknown as HTMLElement).offsetWidth;
+    void (h as unknown as HTMLElement).getBoundingClientRect();
     h.classList.add("tf-hammer-hit");
     await sleep(280);
-    // heat color on anvil top bar
+    // anvil face heats up: ink -> blue -> magenta
     if (hotRectRef.current) {
-      hotRectRef.current.style.fill =
-        n === 1 ? C.ink : n === 2 ? C.blue : C.mag;
+      hotRectRef.current.style.fill = n === 1 ? C.ink : n === 2 ? C.blue : C.mag;
     }
     spawnSparks(n === 3 ? 18 : 9);
     shake(n === 3 ? 2 : 1);
-    if (n === 3 && logoRef.current) {
-      logoRef.current.classList.add("tf-logo-on");
-    }
+    if (n === 3 && logoRef.current) logoRef.current.classList.add("tf-logo-on");
     await sleep(n === 3 ? 300 : 200);
     if (n < 3) { h.classList.remove("tf-hammer-hit"); await sleep(130); }
   };
@@ -145,16 +159,39 @@ export default function IntroOverlay({ onDone }: Props) {
       }
   };
 
-  useEffect(() => {
-    try { if (sessionStorage.getItem("tf-intro") === "1") { onDone(); return; } } catch {}
+  // Put every element back to its starting state (safe to call twice, e.g. React StrictMode)
+  const resetScene = () => {
+    if (overlayRef.current)   overlayRef.current.style.background = C.paper;
+    if (loneRef.current)      loneRef.current.style.display = "";
+    if (bootRef.current)      { bootRef.current.style.visibility = "hidden"; bootRef.current.style.animation = ""; }
+    if (bootLinesRef.current) bootLinesRef.current.innerHTML = "";
+    if (stageRef.current)     stageRef.current.style.animation = "";
+    if (sceneRef.current)     { sceneRef.current.style.opacity = "0"; sceneRef.current.style.animation = ""; }
+    if (hammerRef.current)    hammerRef.current.classList.remove("tf-hammer-hit");
+    if (hotRectRef.current)   hotRectRef.current.style.fill = C.ink;
+    if (logoRef.current)      logoRef.current.classList.remove("tf-logo-on");
+    if (sparksRef.current)    sparksRef.current.innerHTML = "";
+  };
 
+  useEffect(() => {
+    let seen = false;
+    try { seen = sessionStorage.getItem(SEEN_KEY) === "1"; } catch {}
+    // Add ?intro to the URL (e.g. localhost:3000/?intro) to force the intro to play again while testing
+    const force = new URLSearchParams(window.location.search).has("intro");
+    const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    if ((seen && !force) || reduce) { finish(); return; }   // hides the overlay AND calls onDone
+
+    let cancelled = false;
+    skipRef.current = false;
+    wakersRef.current = [];
+    resetScene();
     buildTiles();
 
     const run = async () => {
       await sleep(600);
 
-      if (loneRef.current)                 loneRef.current.style.display = "none";
-      if (bootRef.current)                 bootRef.current.style.visibility = "visible";
+      if (loneRef.current) loneRef.current.style.display = "none";
+      if (bootRef.current) bootRef.current.style.visibility = "visible";
 
       const blEl = bootLinesRef.current;
       if (blEl) {
@@ -166,12 +203,11 @@ export default function IntroOverlay({ onDone }: Props) {
       }
       await sleep(250);
 
-      // slide boot panel out
-      const st = stageRef.current;
-      if (st) { st.style.animation = "tf-logout 0.35s steps(4) forwards"; }
+      // slide the boot panel away (only the panel, not the whole stage)
+      if (bootRef.current) bootRef.current.style.animation = "tf-logout 0.35s steps(4) forwards";
       await sleep(350);
 
-      // drop in forge scene
+      // drop in the forge scene
       const sc = sceneRef.current;
       if (sc) { sc.style.opacity = "1"; sc.style.animation = "tf-drop 0.4s steps(5) forwards"; }
       await sleep(450);
@@ -179,7 +215,8 @@ export default function IntroOverlay({ onDone }: Props) {
       for (let n = 1; n <= 3; n++) await strike(n);
       await sleep(750);
 
-      // dissolve tiles
+      // dissolve: the tiles now carry the paper background, so the overlay itself goes clear
+      if (overlayRef.current) overlayRef.current.style.background = "transparent";
       const tiles = tilesRef.current;
       if (tiles) {
         [...tiles.children].forEach(c => {
@@ -187,15 +224,25 @@ export default function IntroOverlay({ onDone }: Props) {
           t.style.animation = `tf-vanish 0.2s steps(2) calc(${t.style.getPropertyValue("--d")} + 250ms) forwards`;
         });
       }
-      if (st) st.style.animation = "tf-fadeout 0.25s steps(3) forwards";
+      if (stageRef.current) stageRef.current.style.animation = "tf-fadeout 0.25s steps(3) forwards";
+      await sleep(300);
+      onRevealRef.current?.();
       await sleep(900);
     };
 
-    run().catch(() => {}).finally(finish);
+    run()
+      .catch(e => { if (e !== "skip") console.error("[IntroOverlay] intro failed:", e); })
+      .finally(() => { if (!cancelled) finish(); });
 
     const onKey = () => skip();
     document.addEventListener("keydown", onKey);
-    return () => document.removeEventListener("keydown", onKey);
+    return () => {
+      cancelled = true;
+      wakersRef.current.forEach(f => f());
+      wakersRef.current = [];
+      document.removeEventListener("keydown", onKey);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   return (
@@ -204,18 +251,14 @@ export default function IntroOverlay({ onDone }: Props) {
         .tf-cur  { display:inline-block; animation:tf-blink 1s steps(1) infinite; margin-left:2px; }
         .tf-tile {
           background-color:${C.paper};
-          background-image:radial-gradient(circle,${C.dot} 1px,transparent 1.6px);
-          background-size:24px 24px;
+          background-image:${PAPER_BG};
+          background-size:24px 24px, auto;
         }
         .tf-spark {
           position:absolute; left:0; top:0;
           animation:tf-spark 0.6s steps(6) forwards;
         }
         .tf-shake  { animation:tf-shake 0.24s steps(4); }
-        .tf-hammer {
-          transform-origin: 100% 50%;
-          transform: rotate(55deg);
-        }
         .tf-hammer-hit { animation:tf-swing 0.28s steps(4) forwards !important; }
         .tf-logo-on {
           visibility:visible !important;
@@ -254,11 +297,12 @@ export default function IntroOverlay({ onDone }: Props) {
         ref={overlayRef}
         onClick={skip}
         style={{
-          position:"fixed", inset:0, zIndex:200, cursor:"pointer",
+          position:"fixed", inset:0, zIndex:10000, cursor:"pointer",
+          background:C.paper,
           fontFamily:"'JetBrains Mono',monospace",
         }}
       >
-        {/* Tile grid */}
+        {/* Tile grid (does the dissolve) */}
         <div
           ref={tilesRef}
           style={{ position:"absolute", inset:0, display:"grid", justifyContent:"start", alignContent:"start" }}
@@ -295,8 +339,8 @@ export default function IntroOverlay({ onDone }: Props) {
           {/* Forge + Logo */}
           <div ref={rigRef} style={{ gridArea:"1/1", display:"flex", flexDirection:"column", alignItems:"center" }}>
             <div ref={sceneRef} style={{ opacity:0 }}>
-              {/* Forge container */}
-              <div style={{ position:"relative", width:"320px", height:"180px", marginTop: "140px" }}>
+              {/* Forge container, unit = 10px */}
+              <div style={{ position:"relative", width:"320px", height:"180px", marginTop:"140px" }}>
                 {/* Anvil */}
                 <svg
                   viewBox="0 0 32 18" shapeRendering="crispEdges"
@@ -321,10 +365,10 @@ export default function IntroOverlay({ onDone }: Props) {
                 {/* Hammer */}
                 <svg
                   ref={hammerRef} viewBox="0 0 30 8" shapeRendering="crispEdges"
-                  className="tf-hammer"
                   style={{
                     position:"absolute", left:"100px", top:"12px",
-                    width:"180px", height:"48px"
+                    width:"180px", height:"48px",
+                    transformOrigin:"100% 50%", transform:"rotate(55deg)",
                   }}
                 >
                   <rect x="0"  y="0" width="10" height="8" fill={C.ink}/>
@@ -333,7 +377,7 @@ export default function IntroOverlay({ onDone }: Props) {
                   <rect x="25" y="3" width="5"  height="2" fill={C.magDeep}/>
                 </svg>
 
-                {/* Sparks origin */}
+                {/* Sparks origin (where the hammer head meets the anvil) */}
                 <div
                   ref={sparksRef}
                   style={{ position:"absolute", left:"130px", top:"60px", width:0, height:0, pointerEvents:"none" }}
