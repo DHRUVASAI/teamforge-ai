@@ -1,0 +1,406 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="color-scheme" content="light">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>TeamForge.AI — Squad Snake</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Pixelify+Sans:wght@500;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --paper:#f4f2f0; --head:#ffffff; --card:rgba(255,255,255,.8);
+  --ink:#001233; --blue:#0065cc; --blue-soft:#aecae7;
+  --magenta:#c90068; --magenta-deep:#950048;
+  --line:#c9d6ea; --dot:#d3d1cd; --muted:#3a3f52;
+  --pixel:"Pixelify Sans","Press Start 2P",ui-monospace,monospace;
+  --mono:"JetBrains Mono",ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px);
+  padding-bottom:env(safe-area-inset-bottom,0px);
+  color-scheme:light;
+}
+html{height:100%;scroll-padding-top:env(safe-area-inset-top,0px)}
+*,*::before,*::after{box-sizing:border-box}
+[hidden]{display:none!important}
+body{
+  margin:0;min-height:100%;
+  background-color:var(--paper);
+  background-image:radial-gradient(circle,var(--dot) 1px,transparent 1.6px),repeating-linear-gradient(0deg,rgba(0,18,51,.03) 0 1px,transparent 1px 3px);
+  background-size:24px 24px,auto;
+  color:var(--ink);font-family:var(--mono);
+}
+button{font:inherit;color:inherit;cursor:pointer}
+:focus-visible{outline:3px solid var(--magenta);outline-offset:3px}
+
+/* header */
+.top{
+  display:flex;justify-content:space-between;align-items:center;
+  padding:26px clamp(18px,4vw,56px);
+  background:var(--head);border-bottom:4px solid var(--ink);
+}
+.brand{font-size:17px;letter-spacing:.02em}
+.brand b{font-weight:400;color:var(--magenta)}
+.btn-mc{
+  font-family:var(--pixel);font-weight:700;font-size:13px;letter-spacing:.14em;
+  color:var(--magenta);background:var(--head);
+  border:2px solid var(--magenta);padding:12px 22px;
+  box-shadow:4px 4px 0 var(--magenta-deep);
+  transition:transform .12s steps(2),box-shadow .12s steps(2);
+}
+.btn-mc:hover{transform:translate(3px,3px);box-shadow:1px 1px 0 var(--magenta-deep)}
+
+/* layout */
+.frame{max-width:1180px;margin:0 auto;border-left:1px solid var(--line);border-right:1px solid var(--line)}
+.page{
+  min-height:calc(100svh - 92px);
+  display:flex;flex-direction:column;align-items:center;
+  padding:36px 20px 64px;text-align:center;
+}
+.badge{
+  display:inline-block;border:2px dashed var(--magenta);padding:10px 18px;
+  font-family:var(--pixel);font-weight:700;font-size:14px;letter-spacing:.3em;color:var(--magenta);
+}
+h1{
+  margin:20px 0 0;font-family:var(--pixel);font-weight:700;
+  font-size:clamp(30px,8vw,72px);line-height:1.02;
+  color:var(--ink);text-shadow:.045em .045em 0 var(--blue-soft);
+}
+h1 .blue{color:var(--blue);position:relative;display:inline-block}
+h1 .blue::after{content:"";position:absolute;left:0;right:0;bottom:-.06em;height:.085em;background:var(--magenta)}
+.blurb{
+  margin:26px 0 0;max-width:640px;padding:18px 30px;
+  border-left:8px solid var(--blue);background:var(--card);
+  font-size:14px;line-height:2;letter-spacing:.02em;text-align:center;
+}
+
+/* HUD */
+.hud{display:flex;gap:14px;margin-top:32px;width:min(92vw,520px)}
+.stat{
+  flex:1;border:2px dashed var(--magenta);padding:8px 10px 6px;background:var(--card);text-align:left;
+}
+.stat small{display:block;font-size:11px;letter-spacing:.14em;color:var(--muted)}
+.stat b{font-family:var(--pixel);font-weight:700;font-size:26px;line-height:1.15;color:var(--ink)}
+.stat.flash b{animation:flash .5s steps(1) 2}
+@keyframes flash{50%{color:var(--magenta)}}
+
+/* board */
+.board{
+  position:relative;margin-top:16px;width:min(92vw,520px);aspect-ratio:1;
+  border:4px solid var(--ink);box-shadow:8px 8px 0 var(--blue-soft);background:var(--paper);
+}
+.board.shake{animation:shake .3s steps(5)}
+@keyframes shake{
+  0%{transform:translate(0,0)}
+  20%{transform:translate(-6px,3px)}
+  40%{transform:translate(5px,-4px)}
+  60%{transform:translate(-4px,-2px)}
+  80%{transform:translate(3px,2px)}
+  100%{transform:translate(0,0)}
+}
+canvas{display:block;width:100%;height:100%;touch-action:none;image-rendering:pixelated}
+.overlay{
+  position:absolute;inset:0;display:grid;place-items:center;padding:16px;
+  background:color-mix(in srgb,var(--paper) 78%,transparent);
+}
+.panel{
+  width:min(100%,360px);padding:22px 20px;border:2px dashed var(--magenta);background:var(--paper);
+}
+.panel h2{margin:0;font-family:var(--pixel);font-weight:700;font-size:26px;letter-spacing:.06em;color:var(--magenta)}
+.panel p{margin:12px 0 0;font-size:13px;line-height:1.8;color:var(--muted)}
+.panel p b{color:var(--ink)}
+.btn-go{
+  margin-top:20px;padding:14px 26px;min-width:220px;
+  background:var(--blue);color:#fff;border:4px solid var(--ink);
+  font-weight:500;font-size:15px;
+  transition:transform .12s steps(2),background .12s steps(2);
+}
+.btn-go:hover{transform:translate(3px,3px);background:var(--ink);color:var(--paper)}
+
+.hint{margin:26px 0 0;font-size:13px;color:var(--muted);line-height:1.7;max-width:520px}
+
+/* touch pad (touch devices only) */
+.pad{display:none;margin-top:22px;grid-template-columns:repeat(3,64px);grid-template-rows:repeat(2,64px);gap:8px;justify-content:center}
+.pad button{
+  border:3px solid var(--ink);background:var(--card);font-family:var(--pixel);font-size:22px;color:var(--ink);
+  box-shadow:4px 4px 0 var(--blue-soft);touch-action:manipulation;
+}
+.pad button:active{transform:translate(3px,3px);box-shadow:1px 1px 0 var(--blue-soft);background:var(--blue);color:#fff}
+.pad .u{grid-column:2;grid-row:1}
+.pad .l{grid-column:1;grid-row:2}
+.pad .d{grid-column:2;grid-row:2}
+.pad .r{grid-column:3;grid-row:2}
+@media (pointer:coarse){.pad{display:grid}.hint .kb{display:none}}
+
+@media (max-width:560px){
+  .btn-mc{font-size:11px;padding:10px 12px;letter-spacing:.08em}
+  .brand{font-size:15px}
+  .badge{font-size:11px;letter-spacing:.2em}
+  .stat b{font-size:22px}
+  .blurb{padding:14px 18px;font-size:13px}
+}
+@media (prefers-reduced-motion:reduce){
+  *,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition:none!important}
+}
+</style>
+</head>
+<body>
+
+<header class="top">
+  <div class="brand">TeamForge<b>.AI</b></div>
+  <button class="btn-mc" id="restartTop" type="button" onclick="window.location.href='/'">[ BACK TO HOME ]</button>
+</header>
+
+<main class="frame">
+  <section class="page">
+    <div class="badge">&gt; SNAKE.EXE LOADED</div>
+    <h1>SQUAD <span class="blue">SNAKE</span></h1>
+    <p class="blurb">Steer the squad, collect commits, and stay off the walls and your own tail. Every 5 commits, the sprint speeds up.</p>
+
+    <div class="hud" aria-label="Score">
+      <div class="stat"><small>SCORE</small><b id="score">000</b></div>
+      <div class="stat"><small>BEST</small><b id="best">000</b></div>
+      <div class="stat" id="levelBox"><small>SPRINT</small><b id="level">1</b></div>
+    </div>
+
+    <div class="board" id="board">
+      <canvas id="cv" aria-label="Snake game board" role="img"></canvas>
+      <div class="overlay" id="overlay" role="status" aria-live="polite">
+        <div class="panel">
+          <h2 id="ovTitle">&gt; READY</h2>
+          <p id="ovText">Collect commits to grow the squad.</p>
+          <button class="btn-go" id="ovBtn" type="button">[ START MISSION ]</button>
+        </div>
+      </div>
+    </div>
+
+    <p class="hint"><span class="kb">Arrow keys or WASD to steer. Space to pause.</span> Swipe on the board to steer on touch screens.</p>
+
+    <div class="pad" aria-label="Direction pad">
+      <button class="u" type="button" data-d="up" aria-label="Up">▲</button>
+      <button class="l" type="button" data-d="left" aria-label="Left">◀</button>
+      <button class="d" type="button" data-d="down" aria-label="Down">▼</button>
+      <button class="r" type="button" data-d="right" aria-label="Right">▶</button>
+    </div>
+  </section>
+</main>
+
+<script>
+(() => {
+  const $ = s => document.querySelector(s);
+  const cv = $('#cv'), ctx = cv.getContext('2d');
+  const board = $('#board'), overlay = $('#overlay'), ovTitle = $('#ovTitle'), ovText = $('#ovText'), ovBtn = $('#ovBtn');
+  const scoreEl = $('#score'), bestEl = $('#best'), levelEl = $('#level'), levelBox = $('#levelBox');
+
+  const N = 20;                       // grid is N x N
+  const LEVEL_EVERY = 5;              // commits per sprint
+  const DIRS = { up:{x:0,y:-1}, down:{x:0,y:1}, left:{x:-1,y:0}, right:{x:1,y:0} };
+
+  let cell = 24, dpr = 1;
+  let snake, dir, queue, food, score, best = 0, interval, state = 'idle', acc = 0, last = 0, particles = [];
+
+  try { best = parseInt(localStorage.getItem('tf-snake-best') || '0', 10) || 0; } catch (e) {}
+  const pad3 = n => String(n).padStart(3, '0');
+  bestEl.textContent = pad3(best);
+
+  /* ---------- theme colors for the canvas ---------- */
+  let C = {};
+  function readColors() {
+    const s = getComputedStyle(document.documentElement), g = n => s.getPropertyValue(n).trim();
+    C = { paper:g('--paper'), ink:g('--ink'), blue:g('--blue'), soft:g('--blue-soft'), mag:g('--magenta'), dot:g('--dot') };
+  }
+  readColors();
+
+  /* ---------- sizing ---------- */
+  function resize() {
+    dpr = Math.min(window.devicePixelRatio || 1, 2);
+    const w = board.clientWidth - 8;              // minus the 4px borders
+    cell = Math.max(8, Math.floor(w * dpr / N));
+    cv.width = cv.height = cell * N;
+  }
+  addEventListener('resize', resize);
+
+  /* ---------- game logic ---------- */
+  const levelOf = s => 1 + Math.floor(s / LEVEL_EVERY);
+  const intervalOf = lv => Math.max(58, 140 - (lv - 1) * 12);
+
+  function reset() {
+    snake = [{x:9,y:10},{x:8,y:10},{x:7,y:10}];
+    dir = DIRS.right; queue = []; score = 0; interval = intervalOf(1); acc = 0; particles = [];
+    food = spawnFood();
+    scoreEl.textContent = pad3(0); levelEl.textContent = '1';
+  }
+
+  function spawnFood() {
+    const taken = new Set(snake.map(p => p.x + ',' + p.y)), free = [];
+    for (let y = 0; y < N; y++) for (let x = 0; x < N; x++) if (!taken.has(x + ',' + y)) free.push({x,y});
+    return free.length ? free[Math.floor(Math.random() * free.length)] : null;
+  }
+
+  function setDir(name) {
+    const d = DIRS[name]; if (!d) return;
+    const ref = queue.length ? queue[queue.length - 1] : dir;
+    if ((d.x === -ref.x && d.y === -ref.y) || (d.x === ref.x && d.y === ref.y)) return;
+    if (queue.length < 2) queue.push(d);
+  }
+
+  function step() {
+    if (queue.length) dir = queue.shift();
+    const head = { x: snake[0].x + dir.x, y: snake[0].y + dir.y };
+    const eating = food && head.x === food.x && head.y === food.y;
+    const body = eating ? snake : snake.slice(0, -1);   // the tail moves away unless we grow
+    if (head.x < 0 || head.y < 0 || head.x >= N || head.y >= N || body.some(p => p.x === head.x && p.y === head.y)) {
+      return gameOver();
+    }
+    snake.unshift(head);
+    if (eating) {
+      score++;
+      scoreEl.textContent = pad3(score);
+      burst(food.x, food.y, 12);
+      const lv = levelOf(score);
+      if (lv !== levelOf(score - 1)) {
+        levelEl.textContent = lv; interval = intervalOf(lv);
+        levelBox.classList.remove('flash'); void levelBox.offsetWidth; levelBox.classList.add('flash');
+      }
+      food = spawnFood();
+      if (!food) return gameOver(true);
+    } else snake.pop();
+  }
+
+  function burst(gx, gy, n) {
+    const now = performance.now(), colors = [C.blue, C.mag, C.ink];
+    for (let i = 0; i < n; i++) {
+      const a = Math.random() * Math.PI * 2, d = 0.8 + Math.random() * 1.6;
+      particles.push({ x: gx + .5, y: gy + .5, vx: Math.cos(a) * d, vy: Math.sin(a) * d, born: now, col: colors[i % 3], big: i % 2 });
+    }
+  }
+
+  /* ---------- states ---------- */
+  function showOverlay(title, html, btn) {
+    ovTitle.textContent = title; ovText.innerHTML = html; ovBtn.textContent = btn;
+    overlay.hidden = false; ovBtn.focus({ preventScroll: true });
+  }
+  function start() {
+    reset(); state = 'run'; overlay.hidden = true; last = performance.now();
+  }
+  function pause() {
+    if (state !== 'run') return;
+    state = 'pause'; showOverlay('> PAUSED', 'Take a breath. Your squad is waiting.', '[ RESUME ]');
+  }
+  function resume() { state = 'run'; overlay.hidden = true; last = performance.now(); }
+  function gameOver(won) {
+    state = 'over';
+    const record = score > best;
+    if (record) { best = score; bestEl.textContent = pad3(best); try { localStorage.setItem('tf-snake-best', String(best)); } catch (e) {} }
+    board.classList.remove('shake'); void board.offsetWidth; board.classList.add('shake');
+    showOverlay(
+      won ? '> ALL COMMITS COLLECTED' : '> MISSION FAILED',
+      `Commits collected: <b>${score}</b><br>${record && score > 0 ? '> New best score!' : 'Best: <b>' + best + '</b>'}`,
+      '[ RETRY ]'
+    );
+  }
+  function primary() {
+    if (state === 'pause') resume(); else start();
+  }
+
+  /* ---------- input ---------- */
+  const KEYS = { ArrowUp:'up', ArrowDown:'down', ArrowLeft:'left', ArrowRight:'right', w:'up', s:'down', a:'left', d:'right', W:'up', S:'down', A:'left', D:'right' };
+  addEventListener('keydown', e => {
+    if (e.metaKey || e.ctrlKey || e.altKey) return;
+    const d = KEYS[e.key];
+    if (d) {
+      e.preventDefault();
+      if (state === 'idle' || state === 'over') start();
+      else if (state === 'pause') resume();
+      setDir(d);
+      return;
+    }
+    if (e.key === ' ' || e.key === 'p' || e.key === 'P' || e.key === 'Escape') {
+      if (e.target === ovBtn && e.key === ' ') return;        // let the focused button handle Space
+      e.preventDefault();
+      if (state === 'run') pause(); else if (state === 'pause' && e.key !== 'Escape') resume();
+      else if ((state === 'idle' || state === 'over') && e.key !== 'Escape') start();
+    }
+  });
+  ovBtn.addEventListener('click', primary);
+  document.addEventListener('visibilitychange', () => { if (document.hidden) pause(); });
+
+  document.querySelectorAll('.pad button').forEach(b => b.addEventListener('pointerdown', e => {
+    e.preventDefault();
+    if (state === 'idle' || state === 'over') start(); else if (state === 'pause') resume();
+    setDir(b.dataset.d);
+  }));
+
+  let sx = 0, sy = 0, swiping = false;
+  cv.addEventListener('pointerdown', e => { sx = e.clientX; sy = e.clientY; swiping = true; });
+  cv.addEventListener('pointermove', e => {
+    if (!swiping || state !== 'run') return;
+    const dx = e.clientX - sx, dy = e.clientY - sy;
+    if (Math.max(Math.abs(dx), Math.abs(dy)) < 24) return;
+    setDir(Math.abs(dx) > Math.abs(dy) ? (dx > 0 ? 'right' : 'left') : (dy > 0 ? 'down' : 'up'));
+    sx = e.clientX; sy = e.clientY;
+  });
+  addEventListener('pointerup', () => { swiping = false; });
+
+  /* ---------- drawing ---------- */
+  function draw(now) {
+    const s = cell, off = s * 0.16;
+    ctx.fillStyle = C.paper; ctx.fillRect(0, 0, cv.width, cv.height);
+
+    // dotted grid, one dot per cell
+    ctx.fillStyle = C.dot;
+    const dot = Math.max(2, Math.round(s / 10));
+    for (let y = 0; y < N; y++) for (let x = 0; x < N; x++) ctx.fillRect(x * s + s / 2 - dot / 2, y * s + s / 2 - dot / 2, dot, dot);
+
+    // food (blinks in steps)
+    if (food) {
+      const big = Math.floor(now / 400) % 2, inset = s * (big ? 0.14 : 0.22);
+      ctx.fillStyle = C.soft; ctx.fillRect(food.x * s + inset + off, food.y * s + inset + off, s - inset * 2, s - inset * 2);
+      ctx.fillStyle = C.ink;  ctx.fillRect(food.x * s + inset, food.y * s + inset, s - inset * 2, s - inset * 2);
+      const b = inset + s * 0.1;
+      ctx.fillStyle = C.mag;  ctx.fillRect(food.x * s + b, food.y * s + b, s - b * 2, s - b * 2);
+    }
+
+    // snake: hard shadow first, then bodies, then head
+    const pad = s * 0.06;
+    ctx.fillStyle = C.soft;
+    snake.forEach(p => ctx.fillRect(p.x * s + pad + off, p.y * s + pad + off, s - pad * 2, s - pad * 2));
+    for (let i = snake.length - 1; i > 0; i--) {
+      const p = snake[i], b = s * 0.14;
+      ctx.fillStyle = C.ink;  ctx.fillRect(p.x * s + pad, p.y * s + pad, s - pad * 2, s - pad * 2);
+      ctx.fillStyle = C.blue; ctx.fillRect(p.x * s + pad + b, p.y * s + pad + b, s - (pad + b) * 2, s - (pad + b) * 2);
+    }
+    const h = snake[0];
+    ctx.fillStyle = C.ink; ctx.fillRect(h.x * s + pad, h.y * s + pad, s - pad * 2, s - pad * 2);
+    const cx = h.x * s + s / 2, cy = h.y * s + s / 2, e = Math.max(3, s * 0.17), px = -dir.y, py = dir.x;
+    ctx.fillStyle = C.paper;
+    [-1, 1].forEach(k => ctx.fillRect(cx + dir.x * s * 0.14 + px * k * s * 0.2 - e / 2, cy + dir.y * s * 0.14 + py * k * s * 0.2 - e / 2, e, e));
+
+    // sparks (stepped, like the intro)
+    particles = particles.filter(p => now - p.born < 450);
+    particles.forEach(p => {
+      const t = Math.floor((now - p.born) / 75) / 6;
+      const x = (p.x + p.vx * t * 1.4) * s, y = (p.y + p.vy * t * 1.4 + t * t * 1.2) * s, z = s * (p.big ? 0.2 : 0.11);
+      ctx.fillStyle = p.col; ctx.fillRect(x - z / 2, y - z / 2, z, z);
+    });
+  }
+
+  function frame(now) {
+    if (state === 'run') {
+      acc += Math.min(now - last, 100);
+      while (acc >= interval && state === 'run') { acc -= interval; step(); }
+    }
+    last = now;
+    draw(now);
+    requestAnimationFrame(frame);
+  }
+
+  /* ---------- boot ---------- */
+  reset(); resize();
+  showOverlay('> READY', 'Collect <b>commits</b> to grow the squad.<br>Hit a wall or your own tail and the mission ends.', '[ START MISSION ]');
+  requestAnimationFrame(t => { last = t; frame(t); });
+})();
+</script>
+</body>
+</html>
