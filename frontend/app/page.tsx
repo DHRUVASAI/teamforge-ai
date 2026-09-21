@@ -13,6 +13,7 @@ export default function Home() {
   // Demo State
   const [demoIdea, setDemoIdea] = useState("");
   const [demoTime, setDemoTime] = useState("1 Week");
+  const [demoSquad, setDemoSquad] = useState("Solo");
   const [isDemoRunning, setIsDemoRunning] = useState(false);
   const [demoOutput, setDemoOutput] = useState("");
 
@@ -96,8 +97,16 @@ export default function Home() {
       ? "MVP MODE: JWT auth + core features. Local Postgres. Ship fast."
       : "ENTERPRISE MODE: Full CI/CD pipeline. Scalable DB. E2E test suite.";
 
+    // Squad size affects team structure and task split
+    const squadLines =
+      demoSquad === "Solo"
+        ? "> SQUAD     : Solo dev — monorepo, no microservices, deploy all-in-one.\n> ROLE SPLIT: You own everything. Focus on speed, not scale.\n"
+        : demoSquad === "2-4"
+        ? "> SQUAD     : Small team — 1 lead + devs, shared repo, feature branches.\n> ROLE SPLIT: FE dev, BE dev, shared DB + DevOps tasks.\n"
+        : "> SQUAD     : Full team — Lead Arch, 2 FE, 2 BE, 1 DevOps, 1 QA.\n> ROLE SPLIT: Parallel tracks. CI/CD from Day 1. PR review required.\n";
+
     let text = `[ TEAMFORGE AI ] Analyzing: "${demoIdea}"\n`;
-    text += `[ SYSTEM ] Time budget: ${demoTime} | Generating architecture...\n\n`;
+    text += `[ SYSTEM ] Time: ${demoTime} | Squad: ${demoSquad} | Generating...\n\n`;
     text += `╔══════════════════════════════════╗\n`;
     text += `║     RECOMMENDED TECH STACK       ║\n`;
     text += `╚══════════════════════════════════╝\n\n`;
@@ -105,7 +114,9 @@ export default function Home() {
     text += `> BACKEND   : ${backend}\n`;
     text += `> DATABASE  : ${database}\n`;
     text += `> INFRA     : ${infra}\n`;
-    if (special) text += special;
+    if (special) text += special + "\n";
+    text += `\n`;
+    text += squadLines;
     text += `\n[ AI ] Structuring ${demoTime} roadmap...\n`;
     text += `> ${focusMode}\n\n`;
     text += `╔══════════════════════════════════╗\n`;
@@ -272,7 +283,7 @@ export default function Home() {
                 <div style={{ fontFamily: 'Press Start 2P', fontSize: '10px', color: '#001133', marginBottom: '16px', letterSpacing: '1px' }}>&gt; TEAM SIZE</div>
                 <div style={{ display: 'flex', gap: '12px' }}>
                   {["Solo", "2-4", "5+"].map(s => (
-                    <button key={s} style={{ flex: 1, padding: '14px 8px', border: '3px solid #001133', background: s === 'Solo' ? '#0066CC' : 'white', color: s === 'Solo' ? 'white' : '#001133', fontFamily: 'JetBrains Mono', fontWeight: 'bold', fontSize: '13px', cursor: 'pointer' }}>
+                    <button key={s} onClick={() => setDemoSquad(s)} style={{ flex: 1, padding: '14px 8px', border: '3px solid #001133', background: demoSquad === s ? '#0066CC' : 'white', color: demoSquad === s ? 'white' : '#001133', fontFamily: 'JetBrains Mono', fontWeight: 'bold', fontSize: '13px', cursor: 'pointer', transition: 'all 0.1s' }}>
                       {s}
                     </button>
                   ))}
