@@ -70,21 +70,21 @@ export default function Dashboard() {
         <span style={{ fontFamily: 'JetBrains Mono', fontSize: '11px', color: '#CC0066' }}>COMMANDER: {user?.name?.toUpperCase()}</span>
       </div>
 
-      <nav style={{ borderBottom: '2px solid #0066CC', padding: '16px 48px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'white' }}>
+      <nav className="px-4 md:px-12 py-4" style={{ borderBottom: '2px solid #0066CC', display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'white' }}>
         <Link href="/" style={{ textDecoration: 'none' }}>
           <span style={{ fontFamily: 'Press Start 2P', fontSize: '14px', color: '#0066CC' }}>TeamForge</span>
         </Link>
         <div style={{ display: 'flex', gap: '24px', alignItems: 'center' }}>
-          <span style={{ fontFamily: 'JetBrains Mono', fontSize: '13px', color: '#1A1A1A' }}>Mission Control</span>
+          <span className="hidden md:block" style={{ fontFamily: 'JetBrains Mono', fontSize: '13px', color: '#1A1A1A' }}>Mission Control</span>
           <Link href="/profile" className="arcade-btn-primary" style={{ fontSize: '9px', padding: '8px 16px', textDecoration: 'none' }}>[ PROFILE ]</Link>
-          <button onClick={logout} className="arcade-btn-secondary" style={{ fontSize: '9px', padding: '8px 16px' }}>[ LOG OUT ]</button>
+          <button onClick={logout} className="arcade-btn-secondary hidden md:inline-block" style={{ fontSize: '9px', padding: '8px 16px' }}>[ LOG OUT ]</button>
         </div>
       </nav>
 
-      <div style={{ padding: '48px 64px', display: 'grid', gridTemplateColumns: '3fr 1fr', gap: '48px' }}>
+      <div className="px-4 md:px-16 py-8 md:py-12 grid grid-cols-1 lg:grid-cols-4 gap-8 md:gap-12">
         
         {/* LEFT COLUMN: MISSIONS */}
-        <div>
+        <div className="col-span-1 lg:col-span-3">
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '40px' }}>
             <div>
               <h1 style={{ fontFamily: 'Press Start 2P', fontSize: '20px', color: '#001133', marginBottom: '8px' }}>YOUR MISSIONS</h1>

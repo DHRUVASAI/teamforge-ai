@@ -98,7 +98,7 @@ export default function MissionDetail() {
 
   return (
     <div style={{ minHeight: '100vh', background: '#FAF9F6' }}>
-      <nav style={{ borderBottom: '3px solid #0066CC', padding: '16px 48px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'white' }}>
+      <nav className="px-4 md:px-12 py-4" style={{ borderBottom: '3px solid #0066CC', display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'white' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '24px' }}>
           <Link href="/" style={{ textDecoration: 'none' }}><span style={{ fontFamily: 'Press Start 2P', fontSize: '14px', color: '#0066CC' }}>TeamForge</span></Link>
           <span style={{ fontFamily: 'JetBrains Mono', fontSize: '11px', color: '#CC0066', fontWeight: 'bold' }}>[ MISSION BRIEFING ]</span>
@@ -106,7 +106,7 @@ export default function MissionDetail() {
         <Link href="/dashboard" style={{ fontFamily: 'JetBrains Mono', fontSize: '13px', color: '#0066CC', fontWeight: 'bold', textDecoration: 'none' }}>&lt; All Missions</Link>
       </nav>
       
-      <div style={{ padding: '48px 64px', maxWidth: '900px' }}>
+      <div className="px-4 py-8 md:px-16 md:py-12" style={{ maxWidth: '900px' }}>
         {project && (
           <>
             <div style={{ marginBottom: '40px', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
@@ -135,7 +135,7 @@ export default function MissionDetail() {
               </div>
             )}
 
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px', marginBottom: '40px' }}>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-10">
               <div className="arcade-card" style={{ padding: '24px' }}>
                 <div style={{ fontFamily: 'JetBrains Mono', fontSize: '11px', color: '#0066CC', marginBottom: '8px' }}>THE PROBLEM</div>
                 <p style={{ fontFamily: 'JetBrains Mono', fontSize: '13px', color: '#1A1A1A', lineHeight: '1.7' }}>{project.problem_statement}</p>

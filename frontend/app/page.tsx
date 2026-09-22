@@ -189,7 +189,7 @@ export default function Home() {
       `}} />
 
       {/* HEADER */}
-      <nav style={{ padding: '24px 48px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'white', borderBottom: '4px solid #001133', position: 'sticky', top: 0, zIndex: 100 }}>
+      <nav className="px-4 md:px-12" style={{ padding: '24px 0', display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'white', borderBottom: '4px solid #001133', position: 'sticky', top: 0, zIndex: 100 }}>
         <div style={{ fontFamily: 'Press Start 2P', fontSize: '18px', color: '#001133' }}>
           TeamForge<span style={{ color: '#CC0066' }}>.AI</span>
         </div>
@@ -259,10 +259,10 @@ export default function Home() {
             </p>
           </div>
 
-          <div style={{ display: 'grid', gridTemplateColumns: '420px 1fr', gap: '0px', border: '4px solid #001133', boxShadow: '12px 12px 0 #CC0066' }}>
+          <div className="grid grid-cols-1 lg:grid-cols-[420px_1fr]" style={{ gap: '0px', border: '4px solid #001133', boxShadow: '12px 12px 0 #CC0066' }}>
             
             {/* Left — Inputs */}
-            <div style={{ padding: '48px 40px', background: '#f8fafc', borderRight: '4px solid #001133', display: 'flex', flexDirection: 'column', gap: '32px' }}>
+            <div className="border-b-4 lg:border-b-0 lg:border-r-4 border-[#001133]" style={{ padding: '48px 40px', background: '#f8fafc', display: 'flex', flexDirection: 'column', gap: '32px' }}>
               <div>
                 <div style={{ fontFamily: 'Press Start 2P', fontSize: '10px', color: '#0066CC', marginBottom: '16px', letterSpacing: '1px' }}>&gt; WHAT ARE YOU BUILDING?</div>
                 <textarea
@@ -353,7 +353,7 @@ export default function Home() {
       <section style={{ padding: '120px 48px', background: '#FAF9F6', position: 'relative' }}>
         <h2 style={{ fontFamily: 'Press Start 2P', fontSize: '32px', color: '#001133', textAlign: 'center', marginBottom: '80px' }}>[ CAPABILITIES ]</h2>
         
-        <div style={{ maxWidth: '1200px', margin: '0 auto', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(350px, 1fr))', gap: '48px' }}>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3" style={{ maxWidth: '1200px', margin: '0 auto', gap: '48px' }}>
           
           {/* Feature 1 */}
           <div style={{ background: 'white', border: '4px solid #0066CC', padding: '40px', boxShadow: '12px 12px 0 #001133', transform: `translateY(${scrollPos > 800 ? 0 : 50}px)`, opacity: scrollPos > 800 ? 1 : 0, transition: 'all 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275)' }}>
