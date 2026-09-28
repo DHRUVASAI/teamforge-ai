@@ -22,7 +22,7 @@ def analyze_problem_statement(db: Session, project_id: str) -> dict:
     """
     
     try:
-        result = llm_client.generate_json(system_prompt=LAZY_ARCHITECT_SYSTEM_PROMPT, user_prompt=user_prompt)
+        result = llm_client.generate_json(system_prompt=LAZY_ARCHITECT_SYSTEM_PROMPT, user_prompt=user_prompt, layer="ps_analyzer")
         
         project.feasibility_verdict = result.get("verdict", "approved")
         project.feasibility_reasoning = result.get("reasoning", "Analyzed successfully.")

@@ -41,7 +41,7 @@ def evaluate_tool_for_capability(db: Session, project_id: str, capability: str) 
     """
     
     try:
-        result = llm_client.generate_json(system_prompt=LAZY_ARCHITECT_SYSTEM_PROMPT, user_prompt=user_prompt)
+        result = llm_client.generate_json(system_prompt=LAZY_ARCHITECT_SYSTEM_PROMPT, user_prompt=user_prompt, layer="tool_evaluator")
         result["is_fallback"] = False
         return result
     except Exception:

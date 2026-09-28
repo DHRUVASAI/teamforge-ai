@@ -57,7 +57,7 @@ def generate_playbook(db: Session, project_id: str, capabilities: Optional[List[
     
     try:
         # Lower the max tokens slightly to fit within rate limits
-        result = llm_client.generate_json(system_prompt=LAZY_ARCHITECT_SYSTEM_PROMPT, user_prompt=user_prompt)
+        result = llm_client.generate_json(system_prompt=LAZY_ARCHITECT_SYSTEM_PROMPT, user_prompt=user_prompt, layer="playbook_engine")
         stages = result.get("stages", [])
         
         for i, stage_data in enumerate(stages):

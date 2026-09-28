@@ -39,6 +39,36 @@ class TeamOut(BaseModel):
     team_code: str
     members: List[TeamMemberOut]
 
+@router.post("/guest", response_model=TokenResponse)
+def login_guest(db: Session = Depends(get_db)):
+    uid = str(uuid4())
+    user = User(
+        id=uid,
+        name=f"Guest_{uid[:6]}",
+        email=f"guest_{uid[:6]}@squad.com",
+        hashed_password=hash_password("guestpassword")
+    )
+    db.add(user)
+    
+    tid = str(uuid4())
+    team = Team(id=tid, name=f"Guest Squad {uid[:4]}", team_code=uid[:8])
+    db.add(team)
+    db.flush()
+    
+    tm = TeamMember(user_id=uid, team_id=tid, role="Commander")
+    db.add(tm)
+    db.commit()
+
+    token = create_access_token({"sub": uid})
+    return {
+        "access_token": token,
+        "token_type": "bearer",
+        "user_id": uid,
+        "name": user.name,
+        "email": user.email,
+        "team_id": tid
+    }
+
 @router.post("/register", response_model=TokenResponse)
 def register(req: RegisterRequest, db: Session = Depends(get_db)):
     if db.query(User).filter(User.email == req.email).first():

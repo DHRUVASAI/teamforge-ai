@@ -1,12 +1,13 @@
 import axios from "axios";
 
 const api = axios.create({
-  baseURL: process.env.NEXT_PUBLIC_API_URL || "https://3-80-24-197.nip.io/api/v1",
+  baseURL: process.env.NEXT_PUBLIC_API_URL || "https://hot-steaks-marry.loca.lt/api/v1",
 });
 
 api.interceptors.request.use((config) => {
   const token = typeof window !== "undefined" ? localStorage.getItem("tf_token") : null;
   if (token) config.headers.Authorization = `Bearer ${token}`;
+  config.headers['Bypass-Tunnel-Reminder'] = 'true';
   return config;
 });
 
@@ -26,6 +27,7 @@ api.interceptors.response.use(
 
 export const register = (data: { name: string; email: string; password: string }) => api.post("/auth/register", data);
 export const login = (data: { email: string; password: string }) => api.post("/auth/login", data);
+export const loginGuest = () => api.post("/auth/guest");
 export const getMe = () => api.get("/auth/me");
 export const getTeam = () => api.get("/auth/team");
 export const joinTeam = (data: { team_code: string }) => api.post("/auth/join-team", data);

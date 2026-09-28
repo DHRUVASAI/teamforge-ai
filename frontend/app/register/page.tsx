@@ -2,7 +2,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { register } from "@/lib/api";
+import { register, loginGuest } from "@/lib/api";
 import { saveAuth } from "@/lib/auth";
 
 const STEPS = [
@@ -17,6 +17,20 @@ export default function RegisterPage() {
   const [form, setForm] = useState({ name: "", email: "", password: "" });
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+
+  const handleGuest = async () => {
+    setLoading(true);
+    setError("");
+    try {
+      const res = await loginGuest();
+      saveAuth(res.data.access_token, res.data);
+      router.push("/dashboard");
+    } catch (err: unknown) {
+      setError("Guest login failed.");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -166,3 +180,4 @@ export default function RegisterPage() {
     </div>
   );
 }
+

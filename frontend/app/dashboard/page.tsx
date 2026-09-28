@@ -81,14 +81,14 @@ export default function Dashboard() {
         </div>
       </nav>
 
-      <div className="px-4 md:px-16 py-8 md:py-12 grid grid-cols-1 lg:grid-cols-4 gap-8 md:gap-12">
+      <div className="px-6 md:px-16 py-10 md:py-16 grid grid-cols-1 lg:grid-cols-4 gap-10 md:gap-16" style={{ maxWidth: "1440px", margin: "0 auto" }}>
         
         {/* LEFT COLUMN: MISSIONS */}
         <div className="col-span-1 lg:col-span-3">
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '40px' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '48px' }}>
             <div>
-              <h1 style={{ fontFamily: 'Press Start 2P', fontSize: '20px', color: '#001133', marginBottom: '8px' }}>YOUR MISSIONS</h1>
-              <p style={{ fontFamily: 'JetBrains Mono', fontSize: '13px', color: '#555' }}>All active engineering missions for your squad</p>
+              <h1 style={{ fontFamily: 'Press Start 2P', fontSize: '20px', color: '#001133', marginBottom: '10px' }}>YOUR MISSIONS</h1>
+              <p style={{ fontFamily: 'JetBrains Mono', fontSize: '14px', color: '#555' }}>All active engineering missions for your squad</p>
             </div>
             <Link href="/dashboard/new" className="arcade-btn-primary" style={{ textDecoration: 'none', display: 'inline-block' }}>[ + New Mission ]</Link>
           </div>
@@ -102,18 +102,18 @@ export default function Dashboard() {
               <Link href="/dashboard/new" className="arcade-btn-primary" style={{ textDecoration: 'none', display: 'inline-block' }}>[ Start First Mission ]</Link>
             </div>
           ) : (
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(340px, 1fr))', gap: '24px' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(380px, 1fr))', gap: '28px' }}>
               {projects.map(p => {
                 const linkId = p.project_id || p.id;
                 const timeVal = p.time_budget?.value || p.time_budget_value;
                 const timeUnit = p.time_budget?.unit || p.time_budget_unit;
                 return (
                   <Link key={linkId} href={`/dashboard/${linkId}`} style={{ textDecoration: 'none' }}>
-                    <div className="arcade-card" style={{ padding: '24px', cursor: 'pointer' }}>
-                      <div style={{ fontFamily: 'JetBrains Mono', fontSize: '10px', color: '#CC0066', marginBottom: '8px' }}>[ MISSION ACTIVE ]</div>
-                      <div style={{ fontFamily: 'Press Start 2P', fontSize: '12px', color: '#001133', marginBottom: '12px', lineHeight: '1.5' }}>{p.name}</div>
-                      <p style={{ fontFamily: 'JetBrains Mono', fontSize: '12px', color: '#555', lineHeight: '1.6', marginBottom: '16px' }}>{p.problem_statement?.substring(0, 100)}...</p>
-                      {timeVal && <div style={{ fontFamily: 'JetBrains Mono', fontSize: '11px', color: '#0066CC' }}>Time: {timeVal} {timeUnit}</div>}
+                    <div className="arcade-card" style={{ padding: '28px 32px', cursor: 'pointer' }}>
+                      <div style={{ fontFamily: 'JetBrains Mono', fontSize: '10px', color: '#CC0066', marginBottom: '10px' }}>[ MISSION ACTIVE ]</div>
+                      <div style={{ fontFamily: 'Press Start 2P', fontSize: '12px', color: '#001133', marginBottom: '14px', lineHeight: '1.6' }}>{p.name}</div>
+                      <p style={{ fontFamily: 'JetBrains Mono', fontSize: '13px', color: '#555', lineHeight: '1.7', marginBottom: '18px' }}>{p.problem_statement?.substring(0, 120)}...</p>
+                      {timeVal && <div style={{ fontFamily: 'JetBrains Mono', fontSize: '11px', color: '#0066CC' }}>⏱ {timeVal} {timeUnit}</div>}
                     </div>
                   </Link>
                 );

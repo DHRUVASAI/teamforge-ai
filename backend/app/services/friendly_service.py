@@ -30,7 +30,7 @@ def generate_eli5_guide(db: Session, project_id: str) -> str:
     """
     
     try:
-        markdown_guide = llm_client.generate_text(system_prompt=FRIENDLY_ELI5_PROMPT, user_prompt=user_prompt)
+        markdown_guide = llm_client.generate_text(system_prompt=FRIENDLY_ELI5_PROMPT, user_prompt=user_prompt, layer="mentor")
         return markdown_guide
     except Exception:
         logger.exception("LLM text generation failed for ELI5 guide")

@@ -2,7 +2,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { login } from "@/lib/api";
+import { login, loginGuest } from "@/lib/api";
 import { saveAuth } from "@/lib/auth";
 
 const FEATURES = [
@@ -17,6 +17,8 @@ export default function LoginPage() {
   const [form, setForm] = useState({ email: "", password: "" });
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+
+  const handleGuest = async () => { setLoading(true); setError(''); try { const res = await loginGuest(); saveAuth(res.data.access_token, res.data); router.push('/dashboard'); } catch (err) { setError('Guest login failed.'); } finally { setLoading(false); } };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -143,3 +145,4 @@ export default function LoginPage() {
     </div>
   );
 }
+
