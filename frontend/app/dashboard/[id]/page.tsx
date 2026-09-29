@@ -33,52 +33,220 @@ interface PipelineStage {
   tasks: string[];
 }
 
+// ─── Smart pipeline generator ─────────────────────────────────────
+// Reads the project's problem_statement + idea and generates unique stages
+function generatePipeline(project: { name: string; problem_statement: string; idea: string }): PipelineStage[] {
+  const text = `${project.name} ${project.problem_statement} ${project.idea}`.toLowerCase();
+
+  const has = (...words: string[]) => words.some(w => text.includes(w));
+
+  // Detect project type
+  const isML     = has("ml", "machine learning", "model", "predict", "ai", "neural", "nlp", "classify", "detection", "recommend");
+  const isData   = has("data", "analytics", "analysis", "dashboard", "visualization", "chart", "report", "insight", "historical", "cricket");
+  const isMobile = has("mobile", "app", "ios", "android", "react native", "flutter");
+  const hasAuth  = has("auth", "login", "user", "register", "account", "jwt", "oauth", "role");
+  const hasDB    = has("database", "db", "sql", "store", "storage", "record", "history", "track");
+  const hasAPI   = has("api", "endpoint", "rest", "backend", "server", "fastapi", "express", "django");
+  const hasPayment = has("payment", "pay", "subscription", "billing", "stripe", "checkout", "price");
+  const hasRealtime = has("realtime", "real-time", "live", "socket", "websocket", "stream", "notification", "chat");
+  const hasScraping = has("scrape", "crawl", "fetch", "collect", "aggregate", "ingest", "feed");
+
+  const stages: PipelineStage[] = [];
+
+  // Stage 1: Always Requirements
+  stages.push({
+    id: "requirements", label: "REQUIREMENTS", icon: "📋",
+    agent: "TeamForge Brain", agentIcon: "🧠", agentColor: "#0066CC",
+    bg: "white", status: "DONE",
+    desc: `Analyze the "${project.name}" project scope, extract team constraints and map the engineering plan.`,
+    tasks: ["Parse problem statement", "Extract required capabilities", "Define team constraints", "Map project scope"],
+  });
+
+  // Stage 2: Data / ML — or Architecture
+  if (isML) {
+    stages.push({
+      id: "data-pipeline", label: "DATA PIPELINE", icon: "🔁",
+      agent: "ML Agent", agentIcon: "🤖", agentColor: "#7c3aed",
+      bg: "white", status: "QUEUED",
+      desc: "Design data ingestion, preprocessing and training pipeline for the ML model.",
+      tasks: ["Set up data sources", "Build preprocessing steps", "Define feature engineering", "Plan model training loop"],
+    });
+  } else if (isData || hasScraping) {
+    stages.push({
+      id: "data-ingestion", label: "DATA INGESTION", icon: "📥",
+      agent: "Backend Agent", agentIcon: "🔧", agentColor: "#0891b2",
+      bg: "white", status: "QUEUED",
+      desc: "Build data collection, aggregation and normalization layer for all data sources.",
+      tasks: ["Identify data sources", "Build scraper / API connectors", "Normalize raw data", "Schedule refresh jobs"],
+    });
+  } else {
+    stages.push({
+      id: "architecture", label: "ARCHITECTURE", icon: "🏗️",
+      agent: "Architect Agent", agentIcon: "⚙️", agentColor: "#CC0066",
+      bg: "white", status: "QUEUED",
+      desc: "Design system architecture and select the optimal tech stack.",
+      tasks: ["Monolith vs microservices", "Select frontend framework", "Select backend + database", "Define API contract"],
+    });
+  }
+
+  // Stage 3: Database (if needed)
+  if (hasDB || hasAuth || isData) {
+    stages.push({
+      id: "database", label: "DATABASE", icon: "🗄️",
+      agent: "Backend Agent", agentIcon: "🔧", agentColor: "#00EE55",
+      bg: "white", status: "LOCKED",
+      desc: "Design schema, relationships and indexes tailored to this project's data model.",
+      tasks: ["Design entity relationships", "Define table schemas", "Set up indexes", "Write seed / migration scripts"],
+    });
+  }
+
+  // Stage 4: Auth (if needed)
+  if (hasAuth) {
+    stages.push({
+      id: "auth", label: "AUTH SYSTEM", icon: "🔐",
+      agent: "Security Agent", agentIcon: "🛡️", agentColor: "#FF0044",
+      bg: "white", status: "LOCKED",
+      desc: "Implement user authentication, authorization and role-based access control.",
+      tasks: ["JWT / OAuth setup", "Role-based access", "Session management", "Password hashing & security"],
+    });
+  }
+
+  // Stage 5: Backend API
+  if (hasAPI || (!isMobile && !isML)) {
+    stages.push({
+      id: "backend", label: "BACKEND API", icon: "⚡",
+      agent: "Backend Agent", agentIcon: "🔧", agentColor: "#00EE55",
+      bg: "white", status: "LOCKED",
+      desc: "Generate REST API endpoints, business logic and data models.",
+      tasks: ["Scaffold API routes", "Write service layer", "Input validation", "API documentation"],
+    });
+  }
+
+  // Stage 5b: ML Model (if ML project)
+  if (isML) {
+    stages.push({
+      id: "model", label: "MODEL BUILD", icon: "🧪",
+      agent: "ML Agent", agentIcon: "🤖", agentColor: "#7c3aed",
+      bg: "white", status: "LOCKED",
+      desc: "Train, evaluate and serialize the machine learning model.",
+      tasks: ["Train baseline model", "Hyperparameter tuning", "Evaluate metrics", "Export model artifact"],
+    });
+  }
+
+  // Stage 5c: Analytics / Viz (if data project)
+  if (isData) {
+    stages.push({
+      id: "analytics", label: "ANALYTICS", icon: "📊",
+      agent: "Frontend Agent", agentIcon: "🖥️", agentColor: "#FFCC00",
+      bg: "white", status: "LOCKED",
+      desc: "Build analytics engine, compute aggregated metrics and visualization-ready data.",
+      tasks: ["Define KPIs and metrics", "Build aggregation queries", "Cache computed results", "Expose analytics API"],
+    });
+  }
+
+  // Stage 5d: Payments
+  if (hasPayment) {
+    stages.push({
+      id: "payments", label: "PAYMENTS", icon: "💳",
+      agent: "Backend Agent", agentIcon: "🔧", agentColor: "#FF0044",
+      bg: "white", status: "LOCKED",
+      desc: "Integrate payment gateway, handle webhooks and manage subscriptions.",
+      tasks: ["Stripe / Razorpay integration", "Webhook handling", "Subscription logic", "Refund & receipt flows"],
+    });
+  }
+
+  // Stage 5e: Realtime
+  if (hasRealtime) {
+    stages.push({
+      id: "realtime", label: "REALTIME", icon: "📡",
+      agent: "Backend Agent", agentIcon: "🔧", agentColor: "#00FFFF",
+      bg: "white", status: "LOCKED",
+      desc: "Set up WebSocket / SSE channels for real-time event broadcasting.",
+      tasks: ["WebSocket server setup", "Event broadcasting", "Connection management", "Fallback polling strategy"],
+    });
+  }
+
+  // Stage 6: Frontend
+  stages.push({
+    id: "frontend", label: isMobile ? "MOBILE APP" : "FRONTEND UI", icon: isMobile ? "📱" : "🎨",
+    agent: "Frontend Agent", agentIcon: "🖥️", agentColor: "#FFCC00",
+    bg: "white", status: "LOCKED",
+    desc: isMobile
+      ? "Build cross-platform mobile app with React Native / Flutter."
+      : "Build responsive UI, pages, routing and connect to the backend API.",
+    tasks: isMobile
+      ? ["Scaffold app structure", "Build screens & navigation", "Integrate API calls", "Handle offline mode"]
+      : ["Scaffold pages & routing", "Build UI components", "Connect to API", "Mobile responsiveness"],
+  });
+
+  // Stage 7: Testing
+  stages.push({
+    id: "testing", label: "TESTING", icon: "🧪",
+    agent: "Testing Agent", agentIcon: "✅", agentColor: "#00FFFF",
+    bg: "white", status: "LOCKED",
+    desc: "Write unit, integration and E2E tests covering critical flows.",
+    tasks: ["Unit tests for services", "Integration test suite", "E2E test scenarios", "Define coverage targets"],
+  });
+
+  // Stage 8: Deployment
+  stages.push({
+    id: "deployment", label: "DEPLOYMENT", icon: "🚀",
+    agent: "DevOps Agent", agentIcon: "☁️", agentColor: "#FF0044",
+    bg: "white", status: "LOCKED",
+    desc: "Configure CI/CD pipeline, hosting, environment variables and monitoring.",
+    tasks: ["Configure CI/CD", "Set up hosting", "Environment variables", "Monitoring & alerts"],
+  });
+
+  return stages;
+}
+// ──────────────────────────────────────────────────────────────────
+
 const INITIAL_PIPELINE: PipelineStage[] = [
   {
-    id: "requirements", label: "Requirements", icon: "📋",
-    agent: "TeamForge Brain", agentIcon: "🧠", agentColor: "#0066CC", bg: "#dbeafe",
+    id: "requirements", label: "REQUIREMENTS", icon: "📋",
+    agent: "TeamForge Brain", agentIcon: "🧠", agentColor: "#0066CC", bg: "white",
     desc: "Extract capabilities, constraints and team context from your problem statement.",
     status: "DONE",
     tasks: ["Parse problem statement", "Extract required capabilities", "Evaluate team skills", "Set time budget constraints"],
   },
   {
-    id: "architecture", label: "Architecture", icon: "🏗️",
-    agent: "Architect Agent", agentIcon: "⚙️", agentColor: "#7c3aed", bg: "#ede9fe",
+    id: "architecture", label: "ARCHITECTURE", icon: "🏗️",
+    agent: "Architect Agent", agentIcon: "⚙️", agentColor: "#CC0066", bg: "white",
     desc: "Design system architecture and select the optimal tech stack for your team and timeline.",
     status: "QUEUED",
     tasks: ["Choose monolith vs microservices", "Select frontend framework", "Select backend + database", "Define API contract"],
   },
   {
-    id: "database", label: "Database", icon: "🗄️",
-    agent: "Backend Agent", agentIcon: "🔧", agentColor: "#0891b2", bg: "#cffafe",
+    id: "database", label: "DATABASE", icon: "🗄️",
+    agent: "Backend Agent", agentIcon: "🔧", agentColor: "#00EE55", bg: "white",
     desc: "Design schema, relationships, indexes, seed data and migration strategy.",
     status: "LOCKED",
     tasks: ["Design entity relationships", "Define table schemas", "Set up indexes", "Write seed data"],
   },
   {
-    id: "backend", label: "Backend API", icon: "⚡",
-    agent: "Backend Agent", agentIcon: "🔧", agentColor: "#0891b2", bg: "#cffafe",
+    id: "backend", label: "BACKEND API", icon: "⚡",
+    agent: "Backend Agent", agentIcon: "🔧", agentColor: "#00EE55", bg: "white",
     desc: "Generate REST API endpoints, business logic, authentication and data models.",
     status: "LOCKED",
     tasks: ["Scaffold API routes", "Implement auth & JWT", "Write service layer", "API documentation"],
   },
   {
-    id: "frontend", label: "Frontend", icon: "🎨",
-    agent: "Frontend Agent", agentIcon: "🖥️", agentColor: "#CC0066", bg: "#fce7f3",
+    id: "frontend", label: "FRONTEND UI", icon: "🎨",
+    agent: "Frontend Agent", agentIcon: "🖥️", agentColor: "#FFCC00", bg: "white",
     desc: "Build responsive UI components, pages, routing and connect to the backend API.",
     status: "LOCKED",
     tasks: ["Scaffold pages & routing", "Build UI components", "Connect to API", "Mobile responsiveness"],
   },
   {
-    id: "testing", label: "Testing", icon: "🧪",
-    agent: "Testing Agent", agentIcon: "✅", agentColor: "#16a34a", bg: "#dcfce7",
+    id: "testing", label: "TESTING", icon: "🧪",
+    agent: "Testing Agent", agentIcon: "✅", agentColor: "#00FFFF", bg: "white",
     desc: "Unit tests, integration tests, E2E test plan and target coverage requirements.",
     status: "LOCKED",
     tasks: ["Write unit tests", "Integration test suite", "E2E test scenarios", "Define coverage targets"],
   },
   {
-    id: "deployment", label: "Deployment", icon: "🚀",
-    agent: "DevOps Agent", agentIcon: "☁️", agentColor: "#d97706", bg: "#fef3c7",
+    id: "deployment", label: "DEPLOYMENT", icon: "🚀",
+    agent: "DevOps Agent", agentIcon: "☁️", agentColor: "#FF0044", bg: "white",
     desc: "CI/CD pipeline, infrastructure configuration and production environment setup.",
     status: "LOCKED",
     tasks: ["Configure CI/CD", "Set up hosting", "Environment variables", "Monitoring & alerts"],
@@ -117,6 +285,7 @@ export default function MissionDetail() {
     getProject(id)
       .then(res => {
         setProject(res.data);
+        setPipeline(generatePipeline(res.data)); // generate unique pipeline for THIS project
         setEditForm({
           name: res.data.name,
           time_budget_value: res.data.time_budget?.value || res.data.time_budget_value || 10,
@@ -146,26 +315,34 @@ export default function MissionDetail() {
     setGenerating(true);
     setLoadMode("choice");
     setError("");
-    // Animate stages one by one
-    const stages = ["architecture", "database", "backend", "frontend", "testing", "deployment"];
-    for (let i = 0; i < stages.length; i++) {
+    
+    // Animate stages one by one dynamically based on the current pipeline
+    const stageIds = pipeline.map(s => s.id);
+    for (let i = 0; i < stageIds.length; i++) {
+      if (stageIds[i] === "requirements") continue; // Already done
+
       setPipeline(p => p.map(s =>
-        s.id === stages[i] ? { ...s, status: "RUNNING" } : s
+        s.id === stageIds[i] ? { ...s, status: "RUNNING" } : s
       ));
-      setSelectedStage(stages[i]);
-      setBrainLog(prev => [{ time: "NOW", msg: `Dispatching ${INITIAL_PIPELINE.find(s => s.id === stages[i])?.agent}...` }, ...prev.slice(0, 5)]);
+      setSelectedStage(stageIds[i]);
+      
+      const currentAgent = pipeline.find(s => s.id === stageIds[i])?.agent || "AI Agent";
+      setBrainLog(prev => [{ time: "NOW", msg: `Dispatching ${currentAgent}...` }, ...prev.slice(0, 5)]);
+      
       await new Promise(r => setTimeout(r, 600));
     }
+    
     try {
       await generatePlaybook(id);
       setPipeline(p => p.map(s => ({ ...s, status: "DONE" })));
-      setBrainLog(prev => [{ time: "NOW", msg: "✓ Pipeline complete. Playbook ready!" }, ...prev.slice(0, 5)]);
+      setBrainLog(prev => [{ time: "NOW", msg: "✅ Pipeline complete. Playbook ready!" }, ...prev.slice(0, 5)]);
       router.push(`/dashboard/${id}/playbook`);
     } catch {
       setError("Could not generate playbook. AI may be warming up.");
       setGenerating(false);
       setLoadMode(null);
-      setPipeline(INITIAL_PIPELINE);
+      // Revert to generated initial state, not the hardcoded one
+      setPipeline(project ? generatePipeline(project as any) : INITIAL_PIPELINE);
     }
   };
 
@@ -255,7 +432,7 @@ export default function MissionDetail() {
             )}
 
             {/* Problem / Idea */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-12">
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", columnGap: "32px", rowGap: "32px", marginBottom: "48px" }}>
               <div className="arcade-card" style={{ padding: "32px" }}>
                 <div style={{ fontFamily: "JetBrains Mono", fontSize: "10px", color: "#0066CC", marginBottom: "12px", letterSpacing: "2px" }}>THE PROBLEM</div>
                 <p style={{ fontFamily: "JetBrains Mono", fontSize: "14px", color: "#1A1A1A", lineHeight: "1.8" }}>{project.problem_statement}</p>
@@ -267,23 +444,36 @@ export default function MissionDetail() {
             </div>
 
             {/* ══════════════════════════════════ PIPELINE ══════════════════════════════════ */}
-            <div style={{ marginBottom: "48px", borderTop: "2px solid #e5e7eb", paddingTop: "40px" }}>
+            <div className="arcade-card" style={{ marginBottom: "48px", background: "#001133", padding: "32px", border: "4px solid #0066CC", boxShadow: "8px 8px 0 #CC0066" }}>
               {/* Section header */}
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "20px", flexWrap: "wrap", gap: "12px" }}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "32px", flexWrap: "wrap", gap: "12px" }}>
                 <div>
-                  <div style={{ fontFamily: "JetBrains Mono", fontSize: "10px", color: "#CC0066", letterSpacing: "3px", marginBottom: "4px" }}>[ ENGINEERING EXECUTION PIPELINE ]</div>
-                  <div style={{ fontFamily: "Press Start 2P", fontSize: "13px", color: "#001133" }}>BUILD WORKFLOW</div>
+                  <div style={{ fontFamily: "JetBrains Mono", fontSize: "11px", color: "#CC0066", letterSpacing: "3px", marginBottom: "8px" }}>[ ENGINEERING EXECUTION PIPELINE ]</div>
+                  <div style={{ fontFamily: "Press Start 2P", fontSize: "14px", color: "white" }}>BUILD WORKFLOW</div>
                 </div>
                 {generating && (
-                  <div style={{ fontFamily: "JetBrains Mono", fontSize: "12px", color: "#0066CC", display: "flex", alignItems: "center", gap: "8px" }}>
+                  <div style={{ fontFamily: "JetBrains Mono", fontSize: "12px", color: "#00EE55", display: "flex", alignItems: "center", gap: "8px" }}>
                     <span className="blink">⚡</span> AGENTS EXECUTING...
                   </div>
                 )}
               </div>
 
-              {/* Horizontal pipeline nodes */}
-              <div ref={pipelineRef} style={{ overflowX: "auto", paddingBottom: "8px" }}>
-                <div style={{ display: "flex", alignItems: "center", minWidth: "max-content", gap: "0", padding: "8px 0 16px 0" }}>
+              {/* Horizontal pipeline nodes — with retro scroll controls */}
+              <div style={{ position: "relative" }}>
+                {/* Left scroll arrow */}
+                <button
+                  onClick={() => pipelineRef.current?.scrollBy({ left: -200, behavior: "smooth" })}
+                  style={{
+                    position: "absolute", left: 0, top: "50%", transform: "translateY(-50%)", zIndex: 10,
+                    background: "#001133", border: "2px solid #0066CC", color: "#0066CC",
+                    fontFamily: "JetBrains Mono", fontSize: "18px", fontWeight: "bold",
+                    width: "36px", height: "36px", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center",
+                    boxShadow: "3px 3px 0 #CC0066",
+                  }}
+                >◀</button>
+
+                <div ref={pipelineRef} className="no-scrollbar" style={{ overflowX: "auto", paddingBottom: "8px", paddingLeft: "44px", paddingRight: "44px" }}>
+                <div style={{ display: "flex", alignItems: "center", minWidth: "max-content", gap: "0", padding: "8px 0" }}>
                   {pipeline.map((stage, idx) => {
                     const isSelected = selectedStage === stage.id;
                     const isDone = stage.status === "DONE";
@@ -298,9 +488,9 @@ export default function MissionDetail() {
                             display: "flex", flexDirection: "column", alignItems: "center",
                             justifyContent: "space-between",
                             width: "140px", minHeight: "130px", padding: "16px 10px",
-                            background: isSelected ? stage.bg : isLocked ? "#f9fafb" : stage.bg + "88",
-                            border: `2px solid ${isSelected ? stage.agentColor : isLocked ? "#e5e7eb" : stage.agentColor + "66"}`,
-                            boxShadow: isSelected ? `0 4px 0 ${stage.agentColor}44, 0 0 0 3px ${stage.agentColor}22` : "none",
+                            background: isSelected ? "#0A0A0A" : isLocked ? "#1A1A1A" : "#001133",
+                            border: `3px solid ${isSelected ? stage.agentColor : isLocked ? "#333" : stage.agentColor + "66"}`,
+                            boxShadow: isSelected ? `0 0 0 3px ${stage.agentColor}44, 4px 4px 0 ${stage.agentColor}` : "4px 4px 0 #000",
                             cursor: "pointer",
                             transition: "all 0.2s",
                             position: "relative",
@@ -309,30 +499,30 @@ export default function MissionDetail() {
                           {/* Running pulse ring */}
                           {isRunning && (
                             <div style={{
-                              position: "absolute", inset: "-4px",
-                              border: `2px solid ${stage.agentColor}`,
+                              position: "absolute", inset: "-6px",
+                              border: `2px dashed ${stage.agentColor}`,
                               animation: "blink 0.8s step-end infinite",
                             }} />
                           )}
                           {/* Icon */}
-                          <div style={{ fontSize: "28px", filter: isLocked ? "grayscale(1)" : "none", lineHeight: 1, flexShrink: 0 }}>
-                            {isDone ? "✅" : stage.icon}
+                          <div style={{ fontSize: "28px", filter: isLocked ? "grayscale(1) opacity(0.3)" : "none", lineHeight: 1, flexShrink: 0 }}>
+                            {stage.icon}
                           </div>
-                          {/* Label — fixed height so wrapping doesn't shift layout */}
+                          {/* Label — Fixed Height and JetBrains Mono */}
                           <div style={{
-                            fontFamily: "Press Start 2P", fontSize: "7px",
-                            color: isLocked ? "#9ca3af" : stage.agentColor,
-                            textAlign: "center", lineHeight: "1.6",
-                            height: "28px", display: "flex", alignItems: "center", justifyContent: "center",
+                            fontFamily: "JetBrains Mono", fontSize: "11px", fontWeight: "bold",
+                            color: isLocked ? "#666" : "white",
+                            textAlign: "center", lineHeight: "1.4",
+                            height: "32px", display: "flex", alignItems: "center", justifyContent: "center",
                             overflow: "hidden",
                           }}>{stage.label}</div>
                           {/* Status pill */}
                           <div style={{
-                            fontFamily: "JetBrains Mono", fontSize: "8px", fontWeight: "bold",
-                            color: statusColor[stage.status],
-                            background: statusBg[stage.status],
-                            padding: "3px 8px",
-                            border: `1px solid ${statusColor[stage.status]}44`,
+                            fontFamily: "JetBrains Mono", fontSize: "9px", fontWeight: "bold",
+                            color: isLocked ? "#444" : isDone ? "#00EE55" : stage.agentColor,
+                            background: isLocked ? "#0A0A0A" : "#001133",
+                            padding: "4px 10px",
+                            border: `2px solid ${isLocked ? "#333" : isDone ? "#00EE55" : stage.agentColor}`,
                             flexShrink: 0,
                           }}>
                             {stage.status === "RUNNING" ? "⚡ RUN" : stage.status === "DONE" ? "✓ DONE" : stage.status === "QUEUED" ? "⏳ NEXT" : "🔒"}
@@ -343,18 +533,31 @@ export default function MissionDetail() {
                         {idx < pipeline.length - 1 && (
                           <div style={{ display: "flex", alignItems: "center", width: "48px", flexShrink: 0 }}>
                             <div style={{
-                              height: "2px", flex: 1,
+                              height: "4px", flex: 1,
                               background: pipeline[idx + 1].status !== "LOCKED"
-                                ? `linear-gradient(to right, ${stage.agentColor}, ${pipeline[idx + 1].agentColor})`
-                                : "#e5e7eb",
+                                ? stage.agentColor
+                                : "#333",
                             }} />
-                            <div style={{ color: pipeline[idx + 1].status !== "LOCKED" ? stage.agentColor : "#d1d5db", fontSize: "14px", lineHeight: 1 }}>▶</div>
+                            <div style={{ color: pipeline[idx + 1].status !== "LOCKED" ? stage.agentColor : "#333", fontSize: "16px", lineHeight: 1, marginLeft: "-4px" }}>▶</div>
                           </div>
                         )}
                       </div>
                     );
                   })}
                 </div>
+              </div>
+
+                {/* Right scroll arrow */}
+                <button
+                  onClick={() => pipelineRef.current?.scrollBy({ left: 200, behavior: "smooth" })}
+                  style={{
+                    position: "absolute", right: 0, top: "50%", transform: "translateY(-50%)", zIndex: 10,
+                    background: "#001133", border: "2px solid #0066CC", color: "#0066CC",
+                    fontFamily: "JetBrains Mono", fontSize: "18px", fontWeight: "bold",
+                    width: "36px", height: "36px", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center",
+                    boxShadow: "3px 3px 0 #CC0066",
+                  }}
+                >▶</button>
               </div>
 
               {/* Selected stage detail card */}

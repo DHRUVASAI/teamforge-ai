@@ -3,6 +3,16 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Hide scrollbar but keep scroll functionality */
+.no-scrollbar::-webkit-scrollbar { display: none; }
+.no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+/* Retro neon scrollbar for light containers */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: #FAF9F6; }
+::-webkit-scrollbar-thumb { background: #0066CC; border: 1px solid #003366; }
+::-webkit-scrollbar-thumb:hover { background: #CC0066; }
+
 :root {
   --arcade-primary: #0066CC;
   --arcade-secondary: #CC0066;
