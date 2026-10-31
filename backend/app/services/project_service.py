@@ -159,3 +159,98 @@ def analyze_project_feasibility(db: Session, project_id: str) -> FeasibilityResp
             proposed_scope_reduction=reductions
         )
     )
+
+
+def create_demo_project_for_team(db, team_id: str):
+    import json
+    from uuid import uuid4
+    from app.models.project import Project
+    from app.models.playbook import ProjectPlaybook, PlaybookStage, PlaybookStep, ToolEvaluation
+
+    pid = str(uuid4())
+    proj = Project(
+        id=pid,
+        team_id=team_id,
+        name="AI Incident Triaging & Self-Healing Agent",
+        problem_statement="On-call engineering squads spend 80% of outages manually digging through microservice logs, parsing alerts, and identifying regressions after continuous deployments.",
+        idea="An autonomous triage copilot integrated with Keploy and FastAPI that correlates real-time trace telemetry, auto-runs regression test replays, and drafts PR fixes for on-call teams.",
+        time_budget_value=48,
+        time_budget_unit="hours",
+        deliverable_type="prototype",
+        constraints_json=json.dumps(["PostgreSQL", "FastAPI", "Next.js", "Keploy eBPF", "Docker"]),
+        mandatory_platforms_json=json.dumps(["Vercel", "AWS RDS"]),
+        status="active"
+    )
+    db.add(proj)
+    db.commit()
+
+    pbid = str(uuid4())
+    pb = ProjectPlaybook(
+        id=pbid,
+        project_id=pid,
+        generation_status="SUCCESS",
+        provider_used="Groq / llama-3.3-70b-versatile",
+        latency_ms=1420
+    )
+    db.add(pb)
+
+    evals = [
+        ("Frontend & Dashboards", "Next.js 15 (App Router)", "Production Standard", "Fastest server rendering with React 19 streaming for live console telemetry."),
+        ("Backend API & Engine", "FastAPI (Python 3.12)", "Async Microframework", "Native asynchronous request handling with high throughput for socket event listeners."),
+        ("Database & Trace Store", "Supabase (PostgreSQL)", "Cloud-Native SQL", "Instant relational schema with pgvector capabilities for log similarity search."),
+        ("Automated Regression Testing", "Keploy Test Harness", "Zero-Code Testing", "Captures real network traffic and virtually mocks PostgreSQL and Redis for instant regression tests.")
+    ]
+    for cap, tool, cat, rat in evals:
+        db.add(ToolEvaluation(
+            playbook_id=pbid,
+            capability=cap,
+            winning_tool=tool,
+            winning_category=cat,
+            rationale=rat,
+            evaluation_matrix_json=[],
+            is_fallback=False
+        ))
+
+    stages_data = [
+        ("Stage 1: System Architecture & Ingestion Sockets", "Configure FastAPI event ingestion webhooks and PostgreSQL log store.", [
+            ("Setup FastAPI async event ingestion endpoint for incoming Datadog/Twilio webhook alerts.", "Write an async FastAPI router accepting POST /api/v1/alerts with pydantic validation for severity, stack trace, and microservice origin.", ["backend/app/routers/alerts.py"]),
+            ("Configure Supabase PostgreSQL database tables with pgvector for error signature indexing.", "Generate SQL migration creating tables for alerts, incidents, affected_services, and incident_status.", ["backend/migrations/001_alerts.sql"]),
+            ("Establish Keploy network proxy configuration for recording inbound alert traffic.", "Create keploy.yml binding to port 8000 and enable SQLite/Postgres auto-mocking.", ["keploy.yml"])
+        ]),
+        ("Stage 2: AI Root Cause Correlation Engine", "Ingest stack traces into the 7-Layer reasoning pipeline to identify regressions.", [
+            ("Correlate recent git commits with stack trace line numbers using Git CLI.", "Execute git log across recent deployment tags to match modified functions against exception stack frames.", ["backend/app/services/git_correlator.py"]),
+            ("Invoke NVIDIA Nemotron reasoning agent to draft the Root Cause Analysis hypothesis.", "Prompt the Nemotron architect layer with the incident diff, error payload, and service dependency graph.", ["backend/app/services/rca_engine.py"])
+        ]),
+        ("Stage 3: Keploy Automated Regression Replay", "Run deterministic integration test replays against the proposed code fix.", [
+            ("Record golden baseline test cases from captured staging traffic using Keploy.", "Execute keploy record to capture incoming webhook alerts and database transactions.", ["scripts/run_keploy.ps1"]),
+            ("Replay Keploy test suite to assert zero regressions before deploying remediation.", "Run keploy test --delay 5 to assert that the proposed patch eliminates the 500 error while preserving 200 OK across sibling endpoints.", ["keploy/tests/"])
+        ]),
+        ("Stage 4: Mission Control Dashboard (Next.js)", "Build real-time triage console with interactive resolution tracks.", [
+            ("Construct retro incident monitor with live streaming status indicators.", "Build Next.js dashboard page with active incident cards, latency gauges, and one-click triage buttons.", ["frontend/app/dashboard/incident/page.tsx"]),
+            ("Wire live WebSocket channel to display automated Keploy test pass/fail results.", "Connect React components to server-sent events for instant visual feedback on test passes.", ["frontend/components/KeployLiveFeed.tsx"])
+        ])
+    ]
+
+    for s_idx, (s_name, s_desc, steps) in enumerate(stages_data):
+        stage = PlaybookStage(
+            playbook_id=pbid,
+            name=s_name,
+            description=s_desc,
+            order_index=s_idx
+        )
+        db.add(stage)
+        db.commit()
+        db.refresh(stage)
+
+        for st_idx, (inst, prompt, files) in enumerate(steps):
+            step = PlaybookStep(
+                stage_id=stage.id,
+                order_index=st_idx,
+                instruction=inst,
+                ai_prompt=prompt,
+                context_files=files
+            )
+            db.add(step)
+
+    db.commit()
+    return proj

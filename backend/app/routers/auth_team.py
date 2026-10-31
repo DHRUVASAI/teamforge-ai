@@ -59,6 +59,9 @@ def login_guest(db: Session = Depends(get_db)):
     db.add(tm)
     db.commit()
 
+    from ..services.project_service import create_demo_project_for_team
+    create_demo_project_for_team(db, tid)
+
     token = create_access_token({"sub": uid})
     return {
         "access_token": token,
