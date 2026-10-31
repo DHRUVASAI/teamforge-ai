@@ -127,9 +127,33 @@ export default function LoginPage() {
               >
                 {loading ? '[ AUTHENTICATING... ]' : '[ ENTER COMMAND CENTER ]'}
               </button>
+
+              <button
+                type="button"
+                onClick={handleGuest}
+                className="arcade-btn-secondary"
+                disabled={loading}
+                style={{
+                  padding: '14px',
+                  fontSize: '11px',
+                  width: '100%',
+                  background: '#f8fafc',
+                  border: '2px solid #0066CC',
+                  color: '#0066CC',
+                  cursor: 'pointer'
+                }}
+              >
+                ⚡ [ ONE-CLICK GUEST ACCESS ]
+              </button>
             </form>
 
-            <div style={{ marginTop: '32px', padding: '24px', background: '#FAF9F6', border: '2px solid #e5e7eb', textAlign: 'center' }}>
+            <div style={{ marginTop: '20px', padding: '12px 16px', background: '#f1f5f9', borderLeft: '3px solid #0066CC', fontFamily: 'JetBrains Mono', fontSize: '11px', color: '#475569', lineHeight: 1.6 }}>
+              <strong>Demo Credentials:</strong><br />
+              Email: <code style={{ color: '#0066CC' }}>admin@teamforge.demo</code><br />
+              Password: <code style={{ color: '#0066CC' }}>password123</code>
+            </div>
+
+            <div style={{ marginTop: '24px', padding: '24px', background: '#FAF9F6', border: '2px solid #e5e7eb', textAlign: 'center' }}>
               <div style={{ fontFamily: 'JetBrains Mono', fontSize: '13px', color: '#666', marginBottom: '8px' }}>No account yet?</div>
               <Link href="/register" className="arcade-btn-secondary" style={{ textDecoration: 'none', display: 'inline-block', fontSize: '10px', padding: '10px 24px' }}>
                 [ JOIN THE MISSION ]
