@@ -1,0 +1,28 @@
+version: v2
+app:
+  name: teamforge-ai
+  port: 8000
+  command: python -m uvicorn app.main:app --host 0.0.0.0 --port 8000
+  path: backend
+
+test:
+  path: keploy/tests
+  delay: 5
+  timeout: 60
+  ignoreOrdering: true
+  tests:
+    - path: keploy/tests/test-set-0
+  mock:
+    path: keploy/mocks
+    config:
+      - name: sqlite
+        type: SQL
+      - name: openai_providers
+        type: HTTP
+
+record:
+  path: keploy/tests
+  filters:
+    - url: "/health"
+    - url: "/docs"
+    - url: "/openapi.json"

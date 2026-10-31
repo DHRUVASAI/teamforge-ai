@@ -2,9 +2,47 @@ from openai import OpenAI, RateLimitError
 import json
 import logging
 import re
+import time
+from datetime import datetime, timezone
+from typing import Dict, Any, List, Optional
 from .config import settings
 
 logger = logging.getLogger(__name__)
+
+# Telemetry store for observability & reliability monitoring
+MAX_TELEMETRY_ITEMS = 100
+EXECUTION_TELEMETRY: List[Dict[str, Any]] = []
+
+def record_telemetry(layer: str, model: str, latency_ms: int, status: str, error: Optional[str] = None):
+    entry = {
+        "timestamp": datetime.now(timezone.utc).isoformat(),
+        "layer": layer,
+        "model": model,
+        "latency_ms": latency_ms,
+        "status": status, # "SUCCESS", "FAILED", "FAILOVER"
+        "error": error
+    }
+    EXECUTION_TELEMETRY.append(entry)
+    if len(EXECUTION_TELEMETRY) > MAX_TELEMETRY_ITEMS:
+        EXECUTION_TELEMETRY.pop(0)
+
+def get_telemetry_stats() -> Dict[str, Any]:
+    total = len(EXECUTION_TELEMETRY)
+    if total == 0:
+        return {
+            "total_calls": 0,
+            "success_rate": 100.0,
+            "avg_latency_ms": 0,
+            "recent_traces": []
+        }
+    successes = sum(1 for e in EXECUTION_TELEMETRY if e["status"] == "SUCCESS")
+    avg_latency = int(sum(e["latency_ms"] for e in EXECUTION_TELEMETRY) / total)
+    return {
+        "total_calls": total,
+        "success_rate": round((successes / total) * 100, 1),
+        "avg_latency_ms": avg_latency,
+        "recent_traces": EXECUTION_TELEMETRY[-15:]
+    }
 
 
 def get_layer_client(layer_name: str) -> tuple[OpenAI, str]:
@@ -14,7 +52,6 @@ def get_layer_client(layer_name: str) -> tuple[OpenAI, str]:
     """
     config = settings.LAYER_KEYS.get(layer_name)
     if not config:
-        # Safe fallback: use playbook_engine key if layer not found
         logger.warning(f"Unknown layer '{layer_name}'. Falling back to playbook_engine key.")
         config = settings.LAYER_KEYS["playbook_engine"]
     
@@ -61,6 +98,7 @@ def generate_text(system_prompt: str, user_prompt: str, layer: str = "playbook_e
     Falls back gracefully if the layer's provider is unavailable.
     """
     client, model = get_layer_client(layer)
+    start_time = time.time()
     
     try:
         response = client.chat.completions.create(
@@ -71,11 +109,17 @@ def generate_text(system_prompt: str, user_prompt: str, layer: str = "playbook_e
             ],
             max_tokens=8192,
         )
+        elapsed_ms = int((time.time() - start_time) * 1000)
+        record_telemetry(layer, model, elapsed_ms, "SUCCESS")
         return response.choices[0].message.content
-    except RateLimitError:
+    except RateLimitError as e:
+        elapsed_ms = int((time.time() - start_time) * 1000)
+        record_telemetry(layer, model, elapsed_ms, "FAILED", f"RateLimitError: {str(e)}")
         logger.error(f"[LAYER: {layer}] Rate limit hit on dedicated key! This should not happen.")
         raise
     except Exception as e:
+        elapsed_ms = int((time.time() - start_time) * 1000)
+        record_telemetry(layer, model, elapsed_ms, "FAILED", str(e))
         logger.error(f"[LAYER: {layer}] API call failed: {str(e)}")
         raise
 
@@ -93,6 +137,7 @@ def generate_json(system_prompt: str, user_prompt: str, layer: str = "playbook_e
     )
     
     client, model = get_layer_client(layer)
+    start_time = time.time()
     
     for attempt in range(2):
         try:
@@ -106,14 +151,23 @@ def generate_json(system_prompt: str, user_prompt: str, layer: str = "playbook_e
             )
             raw = response.choices[0].message.content
             logger.info(f"[LAYER: {layer}] Raw response received ({len(raw)} chars). Parsing JSON...")
-            return extract_json_from_text(raw)
-        except RateLimitError:
-            logger.error(f"[LAYER: {layer}] Rate limit hit on dedicated key! This should never happen.")
+            result = extract_json_from_text(raw)
+            elapsed_ms = int((time.time() - start_time) * 1000)
+            record_telemetry(layer, model, elapsed_ms, "SUCCESS")
+            return result
+        except RateLimitError as e:
+            elapsed_ms = int((time.time() - start_time) * 1000)
+            record_telemetry(layer, model, elapsed_ms, "FAILED", f"RateLimit: {str(e)}")
+            logger.error(f"[LAYER: {layer}] Rate limit hit on dedicated key!")
             raise
         except json.JSONDecodeError as e:
             logger.warning(f"[LAYER: {layer}] JSON parse failed on attempt {attempt + 1}: {e}. Retrying...")
             if attempt == 1:
+                elapsed_ms = int((time.time() - start_time) * 1000)
+                record_telemetry(layer, model, elapsed_ms, "FAILED", f"JSONDecodeError: {str(e)}")
                 raise ValueError(f"Layer '{layer}' failed to produce valid JSON after 2 attempts.")
         except Exception as e:
+            elapsed_ms = int((time.time() - start_time) * 1000)
+            record_telemetry(layer, model, elapsed_ms, "FAILED", str(e))
             logger.error(f"[LAYER: {layer}] Fatal error: {str(e)}")
             raise

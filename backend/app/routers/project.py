@@ -5,6 +5,8 @@ from ..core.database import get_db
 from ..core.security import get_current_user_id
 from ..models.project import Project
 from ..models.user_team import TeamMember
+from ..schemas.user_team import TeamHubOut
+from ..services import auth_team_service
 from ..schemas.project import ProjectCreate, ProjectUpdate, ProjectOut, FeasibilityResponse
 from ..services import project_service
 
@@ -34,11 +36,12 @@ def create_project_endpoint(
     user_id: str = Depends(get_current_user_id),
     db: Session = Depends(get_db)
 ):
-    # Auto-resolve team_id from user_id if they passed their user_id
-    member = db.query(TeamMember).filter(TeamMember.user_id == user_id).first()
-    if not member:
-        raise HTTPException(status_code=400, detail="User does not belong to any team.")
-    req.team_id = member.team_id
+    # Auto-resolve team_id from user_id if not provided or if user passed user_id as team_id
+    if not req.team_id or req.team_id == user_id:
+        member = db.query(TeamMember).filter(TeamMember.user_id == user_id).first()
+        if not member:
+            raise HTTPException(status_code=400, detail="User does not belong to any team.")
+        req.team_id = member.team_id
 
     project = project_service.create_project(db, req)
     return format_project_out(project)
@@ -83,3 +86,11 @@ def analyze_project_endpoint(
     db: Session = Depends(get_db)
 ):
     return project_service.analyze_project_feasibility(db, id)
+
+@router.get("/projects/{project_id}/team-hub", response_model=TeamHubOut)
+def get_team_hub_endpoint(
+    project_id: str,
+    user_id: str = Depends(get_current_user_id),
+    db: Session = Depends(get_db)
+):
+    return auth_team_service.get_team_hub_status(db, project_id)

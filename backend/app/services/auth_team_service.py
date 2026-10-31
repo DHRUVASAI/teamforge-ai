@@ -206,12 +206,14 @@ def get_team_hub_status(db: Session, project_id: str) -> TeamHubOut:
             detail={"error": {"code": "TEAM_NOT_FOUND", "message": "Team not found"}}
         )
         
+    db.expire_all()
     tasks = db.query(Task).filter(Task.project_id == project_id).all()
     total_tasks = len(tasks)
     done_tasks = len([t for t in tasks if t.status == "done"])
     
+    all_members = db.query(TeamMember).filter(TeamMember.team_id == team.id).all()
     members_status = []
-    for m in team.members:
+    for m in all_members:
         user = m.user
         member_tasks = [t for t in tasks if t.assignment and t.assignment.member_id == m.id]
         m_done = len([t for t in member_tasks if t.status == "done"])
@@ -253,7 +255,7 @@ def get_team_hub_status(db: Session, project_id: str) -> TeamHubOut:
         team_code=team.team_code or "TEAM-0000",
         project_id=project.id,
         project_name=project.name,
-        total_members=len(team.members),
+        total_members=len(all_members),
         total_tasks=total_tasks,
         completed_tasks=done_tasks,
         active_bottlenecks_count=len([ms for ms in members_status if ms.is_blocked]),

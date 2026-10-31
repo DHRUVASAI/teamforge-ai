@@ -62,6 +62,7 @@ def login_guest(db: Session = Depends(get_db)):
     token = create_access_token({"sub": uid})
     return {
         "access_token": token,
+        "token": token,
         "token_type": "bearer",
         "user_id": uid,
         "name": user.name,
@@ -69,7 +70,7 @@ def login_guest(db: Session = Depends(get_db)):
         "team_id": tid
     }
 
-@router.post("/register", response_model=TokenResponse)
+@router.post("/register", response_model=TokenResponse, status_code=status.HTTP_201_CREATED)
 def register(req: RegisterRequest, db: Session = Depends(get_db)):
     if db.query(User).filter(User.email == req.email).first():
         raise HTTPException(status_code=400, detail="An account with this email already exists.")
@@ -94,7 +95,7 @@ def register(req: RegisterRequest, db: Session = Depends(get_db)):
     db.commit()
 
     token = create_access_token({"sub": uid})
-    return TokenResponse(access_token=token, user_id=uid, name=user.name, email=user.email)
+    return TokenResponse(access_token=token, token=token, user_id=uid, name=user.name, email=user.email)
 
 @router.post("/join-team", response_model=TeamOut)
 def join_team(req: TeamJoinRequest, current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):
@@ -135,7 +136,7 @@ def login(req: LoginRequest, db: Session = Depends(get_db)):
         raise HTTPException(status_code=401, detail="Wrong email or password. Try again.")
 
     token = create_access_token({"sub": user.id})
-    return TokenResponse(access_token=token, user_id=user.id, name=user.name, email=user.email)
+    return TokenResponse(access_token=token, token=token, user_id=user.id, name=user.name, email=user.email)
 
 @router.get("/me", response_model=UserOut)
 def me(current_user: User = Depends(get_current_user)):

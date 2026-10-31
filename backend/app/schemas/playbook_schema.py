@@ -39,6 +39,10 @@ class ProjectPlaybookSchema(BaseModel):
     id: str
     project_id: str
     created_at: datetime
+    generation_status: str = "SUCCESS"
+    fallback_reason: Optional[str] = None
+    provider_used: Optional[str] = None
+    latency_ms: Optional[int] = None
     evaluations: List[ToolEvaluationSchema] = []
     stages: List[PlaybookStageSchema] = []
 

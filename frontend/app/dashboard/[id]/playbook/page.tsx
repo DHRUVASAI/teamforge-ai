@@ -130,10 +130,58 @@ export default function PlaybookPage() {
             
             <div className="anim-card" style={{ textAlign: 'center', animationDelay: '0.1s' }}>
               <h1 style={{ fontFamily: 'Press Start 2P', fontSize: '24px', color: '#001133', lineHeight: 1.5, marginBottom: '24px' }}>INTERACTIVE BUILD PLAN</h1>
+              
+              <div style={{ display: 'flex', justifyContent: 'center', gap: '20px', fontFamily: 'JetBrains Mono', fontSize: '11px', color: '#64748b', marginBottom: '16px' }}>
+                <span>STATUS: <strong style={{ color: playbook.generation_status === 'SUCCESS' ? '#16a34a' : (playbook.generation_status === 'FALLBACK' ? '#e11d48' : '#d97706') }}>{playbook.generation_status || 'SUCCESS'}</strong></span>
+                {playbook.provider_used && <span>MODEL: <strong>{playbook.provider_used}</strong></span>}
+                {playbook.latency_ms && <span>LATENCY: <strong>{playbook.latency_ms}ms</strong></span>}
+              </div>
+
               <div style={{ width: '100%', height: '16px', background: 'white', border: '2px solid #001133', boxShadow: '4px 4px 0 #003366', position: 'relative', overflow: 'hidden' }}>
                 <div style={{ position: 'absolute', top: 0, left: 0, bottom: 0, width: `${progressPercent}%`, background: '#22c55e', transition: 'width 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275)' }}></div>
               </div>
             </div>
+
+            {playbook.generation_status === 'FALLBACK' && (
+              <div style={{
+                background: '#fff1f2',
+                border: '3px solid #e11d48',
+                boxShadow: '6px 6px 0 #881337',
+                padding: '24px 32px',
+                fontFamily: 'JetBrains Mono',
+                color: '#9f1239'
+              }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '8px' }}>
+                  <span style={{ fontFamily: 'Press Start 2P', fontSize: '10px', color: '#e11d48' }}>
+                    [!] RUNTIME NOTICE: DEGRADED LOCAL FALLBACK ACTIVE
+                  </span>
+                </div>
+                <div style={{ fontSize: '13px', lineHeight: 1.6, marginBottom: '16px' }}>
+                  The AI orchestration provider encountered rate limits or connection interruptions. 
+                  This playbook was generated using the deterministic baseline fallback and <strong>must not be confused with full AI output</strong>.
+                  {playbook.fallback_reason && (
+                    <div style={{ marginTop: '8px', padding: '8px 12px', background: '#ffe4e6', borderLeft: '3px solid #e11d48', fontSize: '12px' }}>
+                      Diagnostic Trace: {playbook.fallback_reason}
+                    </div>
+                  )}
+                </div>
+                <Link
+                  href={`/dashboard/${id}`}
+                  style={{
+                    display: 'inline-block',
+                    background: '#e11d48',
+                    color: 'white',
+                    fontFamily: 'Press Start 2P',
+                    fontSize: '9px',
+                    padding: '10px 16px',
+                    textDecoration: 'none',
+                    boxShadow: '3px 3px 0 #881337'
+                  }}
+                >
+                  &lt; RETURN &amp; RETRY WITH DEDICATED MODEL
+                </Link>
+              </div>
+            )}
             
             <div className="arcade-card anim-card hover-lift" style={{ padding: '32px', border: '3px solid #0066CC', boxShadow: '6px 6px 0 #003366', animationDelay: '0.2s' }}>
               <h2 style={{ fontFamily: 'Press Start 2P', fontSize: '16px', color: '#CC0066', marginBottom: '32px', textAlign: 'center' }}>[ STAGE 1: ARCHITECTURE ]</h2>

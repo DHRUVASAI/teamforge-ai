@@ -10,6 +10,10 @@ class ProjectPlaybook(Base):
     project_id = Column(String(36), ForeignKey("projects.id"), unique=True, nullable=False)
     created_at = Column(DateTime, default=utc_now)
     updated_at = Column(DateTime, default=utc_now, onupdate=utc_now)
+    generation_status = Column(String(32), default="SUCCESS", nullable=False)
+    fallback_reason = Column(Text, nullable=True)
+    provider_used = Column(String(64), nullable=True)
+    latency_ms = Column(Integer, nullable=True)
     
     project = relationship("Project")
     stages = relationship("PlaybookStage", back_populates="playbook", cascade="all, delete-orphan")

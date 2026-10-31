@@ -1,4 +1,4 @@
-from pydantic import BaseModel, EmailStr
+from pydantic import BaseModel, ConfigDict
 from typing import Optional
 
 class RegisterRequest(BaseModel):
@@ -12,15 +12,15 @@ class LoginRequest(BaseModel):
 
 class TokenResponse(BaseModel):
     access_token: str
+    token: Optional[str] = None
     token_type: str = "bearer"
     user_id: str
     name: str
     email: str
 
 class UserOut(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
     id: str
     name: str
     email: str
 
-    class Config:
-        from_attributes = True

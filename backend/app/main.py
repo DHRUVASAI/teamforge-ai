@@ -8,9 +8,9 @@ from .models import (
 )
 from .routers import (
     mock_llm,
-    auth_team, project as project_router, sdlc, architecture, task as task_router,
+    auth_team, team as team_router, project as project_router, sdlc, architecture, task as task_router,
     tool as tool_router, risk as risk_router, mentor as mentor_router, delivery as delivery_router,
-    ps_analyzer as ps_analyzer_router, friendly as friendly_router, playbook as playbook_router
+    ps_analyzer as ps_analyzer_router, friendly as friendly_router, playbook as playbook_router, observability as observability_router
 )
 
 # Initialize database schema
@@ -35,6 +35,7 @@ app.add_middleware(
 API_PREFIX = settings.API_V1_STR
 
 app.include_router(auth_team.router, prefix=API_PREFIX)
+app.include_router(team_router.router, prefix=API_PREFIX)
 app.include_router(project_router.router, prefix=API_PREFIX)
 app.include_router(sdlc.router, prefix=API_PREFIX)
 app.include_router(architecture.router, prefix=API_PREFIX)
@@ -46,6 +47,7 @@ app.include_router(delivery_router.router, prefix=API_PREFIX)
 app.include_router(ps_analyzer_router.router, prefix=API_PREFIX)
 app.include_router(friendly_router.router, prefix=API_PREFIX)
 app.include_router(playbook_router.router, prefix=API_PREFIX)
+app.include_router(observability_router.router, prefix=API_PREFIX)
 app.include_router(mock_llm.router, prefix='/v1')
 
 @app.get("/", tags=["Root"])
@@ -61,3 +63,5 @@ def root():
 @app.get("/health", tags=["Health"])
 def health():
     return {"status": "healthy", "database": "connected"}
+
+
