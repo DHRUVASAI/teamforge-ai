@@ -596,6 +596,24 @@ export default function MissionDetail() {
                       }}>{statusLabel[selected.status]}</div>
                     </div>
                     <p style={{ fontFamily: "JetBrains Mono", fontSize: "13px", color: "#374151", lineHeight: "1.7" }}>{selected.desc}</p>
+                    {selected.id === "architecture" && (
+                      <div style={{ marginTop: "16px" }}>
+                        <Link
+                          href={`/dashboard/${id}/playbook`}
+                          className="arcade-btn-secondary"
+                          style={{
+                            display: "inline-flex",
+                            alignItems: "center",
+                            gap: "8px",
+                            textDecoration: "none",
+                            fontSize: "10px",
+                            padding: "8px 16px",
+                          }}
+                        >
+                          ⚡ VIEW BESPOKE ARCHITECTURE &amp; TOPOLOGY DIAGRAM →
+                        </Link>
+                      </div>
+                    )}
                   </div>
 
                   {/* Right: task checklist */}

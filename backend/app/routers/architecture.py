@@ -24,6 +24,7 @@ def format_arch_out(r: ArchitectureRecommendation) -> dict:
         "rejected_alternatives": r.rejected_alternatives,
         "components": r.components,
         "ai_accelerators": r.ai_accelerators,
+        "diagram_mermaid": r.diagram_mermaid,
         "version": r.version,
         "status": r.status,
         "created_at": r.created_at,

@@ -53,6 +53,7 @@ class ArchitectureRecommendation(Base):
     components_json = Column(Text, nullable=False, default="[]")
     ai_accelerators_json = Column(Text, nullable=True, default="[]")
     bespoke_rationale = Column(Text, nullable=True, default=None)
+    diagram_mermaid = Column(Text, nullable=True, default=None)
     version = Column(Integer, default=1)
     status = Column(String(50), default="recommended") # recommended, accepted, overridden
     created_at = Column(DateTime, default=utc_now)

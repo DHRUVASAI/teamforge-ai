@@ -2,14 +2,16 @@
 import { useEffect, useState } from "react";
 import { useRouter, useParams } from "next/navigation";
 import Link from "next/link";
-import { getPlaybook, askMentor } from "@/lib/api";
+import { getPlaybook, askMentor, getArchitecture } from "@/lib/api";
 import { getAuth } from "@/lib/auth";
+import MermaidDiagram from "@/components/MermaidDiagram";
 
 export default function PlaybookPage() {
   const router = useRouter();
   const params = useParams();
   const id = params?.id as string;
   const [playbook, setPlaybook] = useState<any>(null);
+  const [arch, setArch] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [completedSteps, setCompletedSteps] = useState<Record<string, boolean>>({});
@@ -18,20 +20,20 @@ export default function PlaybookPage() {
   const [chatMsg, setChatMsg] = useState("");
   const [chatHistory, setChatHistory] = useState<{role: string, text: string}[]>([]);
 
-  const fetchPlaybook = () => {
-    getPlaybook(id)
-      .then(res => setPlaybook(res.data))
-      .catch(() => setError("Could not load playbook."))
-      .finally(() => setLoading(false));
+  const fetchPlaybookAndArch = () => {
+    Promise.all([
+      getPlaybook(id).then(res => setPlaybook(res.data)).catch(() => setError("Could not load playbook.")),
+      getArchitecture(id).then(res => setArch(res.data)).catch(() => {})
+    ]).finally(() => setLoading(false));
   };
 
   useEffect(() => {
     const auth = getAuth();
     if (!auth) { router.push("/login"); return; }
     if (!id) return;
-    fetchPlaybook();
-    // Real-time syncing simulation: polling every 10 seconds
-    const interval = setInterval(fetchPlaybook, 10000);
+    fetchPlaybookAndArch();
+    // Real-time syncing simulation: polling every 15 seconds
+    const interval = setInterval(fetchPlaybookAndArch, 15000);
     return () => clearInterval(interval);
   }, [id, router]);
 
@@ -40,7 +42,6 @@ export default function PlaybookPage() {
       ...prev,
       [stepId]: !prev[stepId]
     }));
-    // In a real app, we would sync this state to backend here via API call
   };
 
   const copyToClipboard = (text: string, e: React.MouseEvent) => {
@@ -67,7 +68,7 @@ export default function PlaybookPage() {
     }
   };
 
-  if (loading) return <div style={{ padding: 48, fontFamily: 'JetBrains Mono' }}>Loading playbook...</div>;
+  if (loading) return <div style={{ padding: 48, fontFamily: 'JetBrains Mono' }}>Loading mission playbook &amp; architecture...</div>;
 
   const evaluations = playbook?.evaluations || [];
   const stages = playbook?.stages || [];
@@ -122,7 +123,7 @@ export default function PlaybookPage() {
         </div>
       </nav>
 
-      <div style={{ padding: '48px 64px', maxWidth: '1000px', margin: '0 auto' }}>
+      <div style={{ padding: '48px 64px', maxWidth: '1050px', margin: '0 auto' }}>
         {error && <div style={{ fontFamily: 'JetBrains Mono', fontSize: '12px', color: '#CC0066', border: '1px solid #CC0066', padding: '12px 16px', marginBottom: '24px' }}>&gt; {error}</div>}
         
         {playbook && (
@@ -183,19 +184,89 @@ export default function PlaybookPage() {
               </div>
             )}
             
+            {/* ══ STAGE 1: BESPOKE ARCHITECTURE & TOPOLOGY ══ */}
             <div className="arcade-card anim-card hover-lift" style={{ padding: '32px', border: '3px solid #0066CC', boxShadow: '6px 6px 0 #003366', animationDelay: '0.2s' }}>
-              <h2 style={{ fontFamily: 'Press Start 2P', fontSize: '16px', color: '#CC0066', marginBottom: '32px', textAlign: 'center' }}>[ STAGE 1: ARCHITECTURE ]</h2>
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '24px' }}>
-                {evaluations.map((ev: any, idx: number) => (
-                  <div key={idx} style={{ background: '#f8fafc', padding: '24px', border: '1px solid #cbd5e1', transition: 'transform 0.2s' }} onMouseEnter={e => e.currentTarget.style.transform='scale(1.02)'} onMouseLeave={e => e.currentTarget.style.transform='scale(1)'}>
-                    <div style={{ fontFamily: 'JetBrains Mono', fontSize: '12px', color: '#0066CC', marginBottom: '8px', textTransform: 'uppercase', fontWeight: 'bold' }}>{ev.capability}</div>
-                    <div style={{ fontFamily: 'Press Start 2P', fontSize: '12px', color: '#001133', marginBottom: '16px', lineHeight: '1.4' }}>{ev.winning_tool}</div>
-                    <div className="editable-field" contentEditable suppressContentEditableWarning style={{ fontFamily: 'JetBrains Mono', fontSize: '11px', color: '#555', lineHeight: '1.5', padding: '4px' }}>{ev.rationale}</div>
-                  </div>
-                ))}
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px', flexWrap: 'wrap', gap: '12px' }}>
+                <h2 style={{ fontFamily: 'Press Start 2P', fontSize: '15px', color: '#CC0066' }}>[ STAGE 1: SYSTEM ARCHITECTURE ]</h2>
+                {arch?.tier && (
+                  <span style={{ fontFamily: 'JetBrains Mono', fontSize: '11px', color: '#0066CC', background: '#E0F2FE', padding: '6px 14px', border: '1px solid #0066CC', fontWeight: 'bold' }}>
+                    BLUEPRINT: {arch.tier.toUpperCase()}
+                  </span>
+                )}
               </div>
+
+              {arch?.bespoke_rationale && (
+                <div style={{ background: '#F8FAFC', borderLeft: '4px solid #0066CC', padding: '16px 20px', marginBottom: '24px' }}>
+                  <div style={{ fontFamily: 'Press Start 2P', fontSize: '9px', color: '#0066CC', marginBottom: '6px' }}>ARCHITECTURAL RATIONALE:</div>
+                  <div style={{ fontFamily: 'JetBrains Mono', fontSize: '12px', color: '#334155', lineHeight: '1.6' }}>
+                    {arch.bespoke_rationale}
+                  </div>
+                  {arch.deployment_recommendation && (
+                    <div style={{ fontFamily: 'JetBrains Mono', fontSize: '11px', color: '#64748B', marginTop: '8px' }}>
+                      <strong>Topology:</strong> {arch.deployment_recommendation}
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* Visual Mermaid Architecture Diagram */}
+              {arch?.diagram_mermaid && (
+                <div style={{ marginBottom: '32px' }}>
+                  <MermaidDiagram code={arch.diagram_mermaid} title={arch.tier} />
+                </div>
+              )}
+
+              {/* Domain Components Breakdown */}
+              {arch?.components && arch.components.length > 0 && (
+                <div style={{ marginBottom: '32px' }}>
+                  <div style={{ fontFamily: 'Press Start 2P', fontSize: '11px', color: '#001133', marginBottom: '16px', letterSpacing: '1px' }}>
+                    &gt; DOMAIN COMPONENTS &amp; DATA OWNERSHIP:
+                  </div>
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '16px' }}>
+                    {arch.components.map((comp: any, cIdx: number) => (
+                      <div key={cIdx} style={{ background: '#FFFFFF', border: '1px solid #CBD5E1', borderTop: '3px solid #CC0066', padding: '16px', boxShadow: '2px 2px 0 #E2E8F0' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '8px' }}>
+                          <span style={{ fontFamily: 'JetBrains Mono', fontSize: '12px', fontWeight: 'bold', color: '#001133' }}>{comp.name}</span>
+                          {comp.data_ownership?.storage && (
+                            <span style={{ fontFamily: 'JetBrains Mono', fontSize: '9px', background: '#ECFDF5', color: '#059669', border: '1px solid #10B981', padding: '2px 8px', fontWeight: 'bold' }}>
+                              {comp.data_ownership.storage}
+                            </span>
+                          )}
+                        </div>
+                        <p style={{ fontFamily: 'JetBrains Mono', fontSize: '11px', color: '#475569', lineHeight: '1.5', marginBottom: '10px' }}>
+                          {comp.responsibility}
+                        </p>
+                        {comp.data_ownership?.schema_tables && comp.data_ownership.schema_tables.length > 0 && (
+                          <div style={{ fontFamily: 'JetBrains Mono', fontSize: '9px', color: '#94A3B8' }}>
+                            Tables: {comp.data_ownership.schema_tables.join(', ')}
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Tool Evaluator Matrix */}
+              {evaluations.length > 0 && (
+                <div>
+                  <div style={{ fontFamily: 'Press Start 2P', fontSize: '11px', color: '#001133', marginBottom: '16px', letterSpacing: '1px' }}>
+                    &gt; RECOMMENDED TOOL ACCELERATORS:
+                  </div>
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '16px' }}>
+                    {evaluations.map((ev: any, idx: number) => (
+                      <div key={idx} style={{ background: '#f8fafc', padding: '20px', border: '1px solid #cbd5e1', transition: 'transform 0.2s' }} onMouseEnter={e => e.currentTarget.style.transform='scale(1.02)'} onMouseLeave={e => e.currentTarget.style.transform='scale(1)'}>
+                        <div style={{ fontFamily: 'JetBrains Mono', fontSize: '11px', color: '#0066CC', marginBottom: '6px', textTransform: 'uppercase', fontWeight: 'bold' }}>{ev.capability}</div>
+                        <div style={{ fontFamily: 'Press Start 2P', fontSize: '11px', color: '#001133', marginBottom: '12px', lineHeight: '1.4' }}>{ev.winning_tool}</div>
+                        <div className="editable-field" contentEditable suppressContentEditableWarning style={{ fontFamily: 'JetBrains Mono', fontSize: '11px', color: '#555', lineHeight: '1.5', padding: '4px' }}>{ev.rationale}</div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
 
+            {/* ══ STAGE 2: EXECUTION TRACKS ══ */}
             <div className="arcade-card anim-card" style={{ padding: '40px', border: '3px solid #0066CC', boxShadow: '6px 6px 0 #003366', animationDelay: '0.4s' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '40px' }}>
                 <h2 style={{ fontFamily: 'Press Start 2P', fontSize: '16px', color: '#0066CC' }}>[ STAGE 2: EXECUTION TRACKS ]</h2>
@@ -228,36 +299,43 @@ export default function PlaybookPage() {
                             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '12px' }}>
                               <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
                                 <button onClick={() => toggleStep(stepKey)} style={{
-                                  width: '24px', height: '24px', background: isDone ? '#22c55e' : 'white', border: `2px solid ${isDone ? '#166534' : '#0066CC'}`, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', fontWeight: 'bold', transition: 'all 0.2s'
+                                  width: '24px', height: '24px', border: '2px solid #001133',
+                                  background: isDone ? '#22c55e' : 'white',
+                                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                  fontSize: '12px', cursor: 'pointer', color: 'white', fontWeight: 'bold'
                                 }}>
-                                  {isDone && '✓'}
+                                  {isDone && "✓"}
                                 </button>
-                                <span style={{ fontFamily: 'JetBrains Mono', fontSize: '11px', color: isDone ? '#166534' : '#CC0066', fontWeight: 'bold' }}>STEP 0{stepIdx + 1}</span>
+                                <span style={{ fontFamily: 'JetBrains Mono', fontSize: '13px', fontWeight: 'bold', color: isDone ? '#64748b' : '#001133', textDecoration: isDone ? 'line-through' : 'none' }}>
+                                  {step.instruction}
+                                </span>
                               </div>
-                              <select style={{ fontFamily: 'JetBrains Mono', fontSize: '10px', padding: '4px 8px', border: '1px solid #cbd5e1', background: 'transparent' }}>
-                                <option>Assignee: Unassigned</option>
-                                <option>Dev 1 (Backend)</option>
-                                <option>Dev 2 (Frontend)</option>
-                              </select>
+                              {step.ai_prompt && (
+                                <button onClick={(e) => copyToClipboard(step.ai_prompt, e)} className="arcade-btn-secondary" style={{ padding: '6px 12px', fontSize: '9px', border: '1px solid #001133' }}>
+                                  [ COPY PROMPT ]
+                                </button>
+                              )}
                             </div>
-                            
-                            <div className="editable-field" contentEditable suppressContentEditableWarning style={{ fontFamily: 'JetBrains Mono', fontSize: '14px', color: '#1A1A1A', fontWeight: 'bold', marginBottom: '16px', lineHeight: '1.6', paddingLeft: '40px', paddingRight: '4px', paddingTop: '4px', paddingBottom: '4px' }}>
-                              {step.instruction}
-                            </div>
-                            
+
                             {step.ai_prompt && (
-                              <div style={{ paddingLeft: '40px' }}>
-                                <div style={{ background: '#f8fafc', border: '1px solid #cbd5e1', padding: '16px', position: 'relative' }}>
-                                  <div style={{ fontFamily: 'JetBrains Mono', fontSize: '11px', color: '#0066CC', fontWeight: 'bold', marginBottom: '8px' }}>AI PROMPT CONTEXT:</div>
-                                  <div className="editable-field" contentEditable suppressContentEditableWarning style={{ fontFamily: 'JetBrains Mono', fontSize: '12px', color: '#334155', lineHeight: '1.6', whiteSpace: 'pre-wrap', padding: '4px' }}>
-                                    {step.ai_prompt}
-                                  </div>
-                                  <button onClick={(e) => copyToClipboard(step.ai_prompt, e)} style={{
-                                    position: 'absolute', top: '12px', right: '12px', background: 'white', border: '1px solid #0066CC', color: '#0066CC', fontFamily: 'JetBrains Mono', fontSize: '8px', padding: '4px 8px', cursor: 'pointer', boxShadow: '1px 1px 0 #0066CC'
-                                  }}>
-                                    [ COPY ]
-                                  </button>
+                              <div style={{ background: '#001133', border: '2px solid #0066CC', padding: '16px', position: 'relative', marginTop: '12px' }}>
+                                <div style={{ position: 'absolute', top: '-10px', left: '16px', background: '#0066CC', color: 'white', fontFamily: 'Press Start 2P', fontSize: '8px', padding: '2px 8px' }}>
+                                  AI PROMPT
                                 </div>
+                                <pre style={{ fontFamily: 'JetBrains Mono', fontSize: '11px', color: '#00FF41', whiteSpace: 'pre-wrap', margin: 0, lineHeight: 1.6 }}>
+                                  {step.ai_prompt}
+                                </pre>
+                              </div>
+                            )}
+
+                            {step.context_files && step.context_files.length > 0 && (
+                              <div style={{ display: 'flex', gap: '8px', alignItems: 'center', marginTop: '12px' }}>
+                                <span style={{ fontFamily: 'JetBrains Mono', fontSize: '10px', color: '#888' }}>CONTEXT:</span>
+                                {step.context_files.map((file: string, fIdx: number) => (
+                                  <span key={fIdx} style={{ fontFamily: 'JetBrains Mono', fontSize: '9px', background: '#e2e8f0', color: '#475569', padding: '2px 6px', borderRadius: '2px' }}>
+                                    {file}
+                                  </span>
+                                ))}
                               </div>
                             )}
                           </div>
@@ -268,38 +346,65 @@ export default function PlaybookPage() {
                 ))}
               </div>
             </div>
+
           </div>
         )}
+
       </div>
 
-      {/* FLOATING AI MENTOR WIDGET */}
-      <div style={{ position: 'fixed', bottom: '24px', right: '24px', zIndex: 100 }}>
-        {!chatOpen && (
-          <button onClick={() => setChatOpen(true)} className="arcade-btn-primary hover-lift" style={{ padding: '16px', borderRadius: '50%', width: '64px', height: '64px', fontSize: '24px', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '4px 4px 0 #003366', border: '3px solid #001133' }}>
-            🤖
+      {/* Floating AI Engineer Mentor Chat Toggle */}
+      <div style={{ position: 'fixed', bottom: '32px', right: '32px', zIndex: 100 }}>
+        {!chatOpen ? (
+          <button 
+            onClick={() => setChatOpen(true)}
+            style={{ 
+              background: '#CC0066', color: 'white', border: '3px solid #001133', 
+              boxShadow: '4px 4px 0 #001133', padding: '16px 24px', 
+              fontFamily: 'Press Start 2P', fontSize: '11px', cursor: 'pointer' 
+            }}
+            className="hover-lift"
+          >
+            💬 ASK AI MENTOR
           </button>
-        )}
-        {chatOpen && (
-          <div className="arcade-card anim-card" style={{ width: '350px', height: '450px', display: 'flex', flexDirection: 'column', border: '3px solid #001133', boxShadow: '6px 6px 0 #003366', animationDelay: '0s' }}>
-            <div style={{ background: '#0066CC', color: 'white', padding: '12px 16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <div style={{ fontFamily: 'Press Start 2P', fontSize: '10px' }}>AI MENTOR</div>
-              <button onClick={() => setChatOpen(false)} style={{ background: 'transparent', color: 'white', border: 'none', cursor: 'pointer', fontFamily: 'JetBrains Mono', fontWeight: 'bold' }}>X</button>
+        ) : (
+          <div style={{ width: '420px', height: '520px', background: '#001133', border: '3px solid #CC0066', boxShadow: '8px 8px 0 #000', display: 'flex', flexDirection: 'column' }}>
+            <div style={{ background: '#CC0066', color: 'white', padding: '12px 16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <span style={{ fontFamily: 'Press Start 2P', fontSize: '10px' }}>AI ENGINEER MENTOR</span>
+              <button onClick={() => setChatOpen(false)} style={{ background: 'none', border: 'none', color: 'white', cursor: 'pointer', fontFamily: 'JetBrains Mono', fontSize: '16px' }}>✕</button>
             </div>
             
-            <div style={{ flex: 1, padding: '16px', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '12px', background: '#FAF9F6' }}>
-              <div style={{ background: 'white', border: '1px solid #0066CC', padding: '12px', fontFamily: 'JetBrains Mono', fontSize: '12px', color: '#001133', borderRadius: '0' }}>
-                Hey Commander. I have full context of this mission and the roles of your teammates. Need help executing a step?
+            <div style={{ flex: 1, padding: '16px', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '12px' }}>
+              <div style={{ background: '#002244', border: '1px solid #004488', padding: '12px', color: '#38BDF8', fontFamily: 'JetBrains Mono', fontSize: '11px', lineHeight: 1.5 }}>
+                &gt; I am your Omniscient Lead Engineer. Ask me anything about your architecture, database schema, or step-by-step implementation.
               </div>
-              {chatHistory.map((msg, idx) => (
-                <div key={idx} style={{ alignSelf: msg.role === 'user' ? 'flex-end' : 'flex-start', background: msg.role === 'user' ? '#0066CC' : 'white', color: msg.role === 'user' ? 'white' : '#001133', border: `1px solid ${msg.role === 'user' ? '#003366' : '#0066CC'}`, padding: '12px', fontFamily: 'JetBrains Mono', fontSize: '12px', maxWidth: '80%' }}>
-                  {msg.text}
+              {chatHistory.map((item, idx) => (
+                <div key={idx} style={{ 
+                  alignSelf: item.role === 'user' ? 'flex-end' : 'flex-start',
+                  background: item.role === 'user' ? '#CC0066' : '#002244',
+                  color: 'white',
+                  padding: '10px 14px',
+                  maxWidth: '85%',
+                  border: '1px solid #001133',
+                  fontFamily: 'JetBrains Mono',
+                  fontSize: '11px',
+                  lineHeight: 1.5
+                }}>
+                  {item.text}
                 </div>
               ))}
             </div>
 
-            <form onSubmit={sendMentorMsg} style={{ padding: '12px', borderTop: '2px solid #0066CC', background: 'white', display: 'flex', gap: '8px' }}>
-              <input value={chatMsg} onChange={e => setChatMsg(e.target.value)} placeholder="Ask mentor..." className="arcade-input" style={{ flex: 1, padding: '8px', fontSize: '12px' }} />
-              <button type="submit" className="arcade-btn-primary" style={{ padding: '8px', fontSize: '10px' }}>&gt;</button>
+            <form onSubmit={sendMentorMsg} style={{ display: 'flex', borderTop: '2px solid #004488' }}>
+              <input 
+                type="text" 
+                value={chatMsg} 
+                onChange={(e) => setChatMsg(e.target.value)} 
+                placeholder="Ask architect why..."
+                style={{ flex: 1, background: '#000A1A', color: 'white', border: 'none', padding: '12px', fontFamily: 'JetBrains Mono', fontSize: '11px', outline: 'none' }}
+              />
+              <button type="submit" style={{ background: '#0066CC', color: 'white', border: 'none', padding: '0 16px', fontFamily: 'Press Start 2P', fontSize: '10px', cursor: 'pointer' }}>
+                SEND
+              </button>
             </form>
           </div>
         )}

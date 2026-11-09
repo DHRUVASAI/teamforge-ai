@@ -40,5 +40,8 @@ export const analyzeProject = (projectId: string) => api.post(`/projects/${proje
 export const evaluatePS = (data: object) => api.post("/ps/evaluate", data);
 export const askMentor = (projectId: string, data: { question: string; member_id: string }) => api.post(`/projects/${projectId}/mentor/ask`, data);
 export const updateProject = (id: string, data: object) => api.patch("/projects/" + id, data);
+export const getArchitecture = (projectId: string) => api.get(`/projects/${projectId}/architecture`);
+export const recommendArchitecture = (projectId: string) => api.post(`/projects/${projectId}/architecture/recommend`);
+export const acceptArchitecture = (projectId: string, recommendationId: string) => api.post(`/projects/${projectId}/architecture/accept`, { recommendation_id: recommendationId });
 
 export default api;

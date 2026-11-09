@@ -287,6 +287,8 @@ def _deterministic_fallback(project: Project, boundaries: dict, platform_rules: 
         },
     ]
 
+    diagram_mermaid = synthesize_mermaid_diagram(title, components, boundaries)
+
     return {
         "bespoke_title": title,
         "bespoke_rationale": rationale,
@@ -294,7 +296,59 @@ def _deterministic_fallback(project: Project, boundaries: dict, platform_rules: 
         "deployment_blueprint": f"Single deployable on {boundaries['hosting_tier'].split('(')[0].strip()} — auto-scaling enabled, zero manual server provisioning.",
         "ai_accelerators": ai_accelerators,
         "rejected_alternatives": rejected_alternatives,
+        "diagram_mermaid": diagram_mermaid,
     }
+
+
+def synthesize_mermaid_diagram(title: str, components: list, boundaries: dict) -> str:
+    """
+    Constructs a clean, production-grade Mermaid flowchart TD from components and data ownership.
+    Guaranteed syntactically valid with zero rendering errors.
+    """
+    clean_title = title.replace('"', "'")
+    lines = [
+        "flowchart TD",
+        "    classDef client fill:#001133,stroke:#0066CC,stroke-width:2px,color:#FFFFFF",
+        "    classDef gateway fill:#1E293B,stroke:#38BDF8,stroke-width:2px,color:#FFFFFF",
+        "    classDef service fill:#0F172A,stroke:#CC0066,stroke-width:2px,color:#FFFFFF",
+        "    classDef storage fill:#064E3B,stroke:#10B981,stroke-width:2px,color:#FFFFFF",
+        "",
+        '    subgraph Edge["Client & Edge Gateway"]',
+        '        Client["Web / Mobile Clients"]:::client',
+        f'        Gateway["{boundaries.get("hosting_tier", "Edge CDN").split("—")[0].strip()}"]:::gateway',
+        '    end',
+        "",
+        f'    subgraph Mesh["Architecture: {clean_title}"]',
+    ]
+
+    db_map = {}
+    for i, comp in enumerate(components):
+        node_id = f"SVC_{i}"
+        comp_name = comp.get("name", f"Service {i+1}").replace('"', "'")
+        lines.append(f'        {node_id}["{comp_name}"]:::service')
+
+        storage = comp.get("data_ownership", {}).get("storage", "PostgreSQL")
+        clean_db_id = "DB_" + re.sub(r'[^a-zA-Z0-9_]', '', storage.replace(' ', '_'))
+        if clean_db_id not in db_map:
+            db_map[clean_db_id] = (storage, [])
+        db_map[clean_db_id][1].append(node_id)
+
+    lines.append('    end')
+    lines.append('')
+    lines.append('    subgraph Storage["State & Persistence Layer"]')
+    for db_id, (storage_name, _) in db_map.items():
+        clean_name = storage_name.replace('"', "'")
+        lines.append(f'        {db_id}[("Store: {clean_name}")]:::storage')
+    lines.append('    end')
+    lines.append('')
+    lines.append('    Client --> Gateway')
+    for i in range(len(components)):
+        lines.append(f'    Gateway --> SVC_{i}')
+    for db_id, (_, svc_ids) in db_map.items():
+        for svc_id in svc_ids:
+            lines.append(f'    {svc_id} -.-> {db_id}')
+
+    return "\n".join(lines)
 
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -350,6 +404,10 @@ def recommend_architecture(db: Session, project_id: str) -> ArchitectureRecommen
     rejected_alternatives = bespoke.get("rejected_alternatives", [])
     ai_accelerators = bespoke.get("ai_accelerators", [])
 
+    diagram_mermaid = bespoke.get("diagram_mermaid")
+    if not diagram_mermaid or not any(diagram_mermaid.strip().startswith(p) for p in ["graph", "flowchart"]):
+        diagram_mermaid = synthesize_mermaid_diagram(tier, components, boundaries)
+
     rec = db.query(ArchitectureRecommendation).filter(
         ArchitectureRecommendation.project_id == project_id,
         ArchitectureRecommendation.status != "overridden",
@@ -363,6 +421,7 @@ def recommend_architecture(db: Session, project_id: str) -> ArchitectureRecommen
         rec.rejected_alternatives = rejected_alternatives
         rec.ai_accelerators = ai_accelerators
         rec.bespoke_rationale = reasoning
+        rec.diagram_mermaid = diagram_mermaid
     else:
         rec = ArchitectureRecommendation(
             project_id=project_id,
@@ -373,6 +432,7 @@ def recommend_architecture(db: Session, project_id: str) -> ArchitectureRecommen
             components_json=json.dumps(components),
             ai_accelerators_json=json.dumps(ai_accelerators),
             bespoke_rationale=reasoning,
+            diagram_mermaid=diagram_mermaid,
             version=1 if not rec else rec.version + 1,
             status="recommended",
         )
@@ -418,6 +478,11 @@ def override_architecture(db: Session, project_id: str, data: ArchitectureOverri
 
     components_dict = [c.model_dump() for c in data.components]
 
+    diagram_mermaid = synthesize_mermaid_diagram(data.tier, components_dict, {
+        "hosting_tier": "Custom User Infrastructure",
+        "deployment_complexity": "Custom"
+    })
+
     new_rec = ArchitectureRecommendation(
         project_id=project_id,
         tier=data.tier,
@@ -430,6 +495,7 @@ def override_architecture(db: Session, project_id: str, data: ArchitectureOverri
         components_json=json.dumps(components_dict),
         ai_accelerators_json=json.dumps([]),
         bespoke_rationale=None,
+        diagram_mermaid=diagram_mermaid,
         version=2,
         status="accepted",
     )

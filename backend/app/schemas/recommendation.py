@@ -48,6 +48,7 @@ class ArchitectureRecommendationOut(BaseModel):
     rejected_alternatives: List[Dict[str, Any]]
     components: List[ArchitectureComponentSchema]
     ai_accelerators: Optional[List[Dict[str, Any]]] = []
+    diagram_mermaid: Optional[str] = None
     version: int
     status: str
     created_at: datetime

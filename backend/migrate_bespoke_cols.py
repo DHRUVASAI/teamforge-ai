@@ -24,6 +24,10 @@ if "bespoke_rationale" not in existing:
     cur.execute("ALTER TABLE architecture_recommendations ADD COLUMN bespoke_rationale TEXT DEFAULT NULL")
     print("Added column: bespoke_rationale")
 
+if "diagram_mermaid" not in existing:
+    cur.execute("ALTER TABLE architecture_recommendations ADD COLUMN diagram_mermaid TEXT DEFAULT NULL")
+    print("Added column: diagram_mermaid")
+
 conn.commit()
 conn.close()
 print("Migration complete.")

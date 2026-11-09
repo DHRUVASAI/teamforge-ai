@@ -44,6 +44,9 @@ def test_sdlc_and_architecture_decision_engines(client):
     assert arch_data["status"] == "recommended"
     # ai_accelerators field should be present (may be empty list on fallback)
     assert "ai_accelerators" in arch_data
+    assert "diagram_mermaid" in arch_data
+    assert arch_data["diagram_mermaid"] is not None
+    assert "flowchart" in arch_data["diagram_mermaid"] or "graph" in arch_data["diagram_mermaid"]
 
     # Verify component data ownership
     comp0 = arch_data["components"][0]
