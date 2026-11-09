@@ -18,13 +18,15 @@ def format_arch_out(r: ArchitectureRecommendation) -> dict:
         "recommendation_id": r.id,
         "project_id": r.project_id,
         "tier": r.tier,
+        "bespoke_rationale": r.bespoke_rationale,
         "deployment_recommendation": r.deployment_recommendation,
         "reasoning": r.reasoning,
         "rejected_alternatives": r.rejected_alternatives,
         "components": r.components,
+        "ai_accelerators": r.ai_accelerators,
         "version": r.version,
         "status": r.status,
-        "created_at": r.created_at
+        "created_at": r.created_at,
     }
 
 @router.post("/projects/{id}/architecture/recommend", response_model=ArchitectureRecommendationOut)

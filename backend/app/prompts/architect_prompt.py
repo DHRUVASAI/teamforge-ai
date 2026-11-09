@@ -61,3 +61,60 @@ Take the provided technical architecture JSON and translate it into an ELI5 (Exp
 Use a casual, encouraging tone. Explain *why* these tools were chosen using simple analogies.
 Output valid markdown.
 """
+
+# ─────────────────────────────────────────────────────────────────────────────
+# BESPOKE ARCHITECT — Stage 2 LLM synthesis (called AFTER deterministic engine)
+# Keep prompt concise to minimise token usage on free-tier rate-limited keys.
+# ─────────────────────────────────────────────────────────────────────────────
+
+BESPOKE_ARCHITECT_SYSTEM_PROMPT = """You are a Principal Enterprise Systems Architect with 20 years of experience.
+Synthesize a bespoke, production-ready system architecture uniquely tailored to the application idea below.
+
+RULES:
+- Do NOT use generic labels like "Monolith", "Jamstack", "SPA", or "Microservices" in bespoke_title.
+- bespoke_title MUST describe what the system actually does (e.g. "Hyper-Scale Dynamic Matching Framework").
+- Component names MUST reflect the application domain, not generic tech terms.
+- You MUST define 4 to 6 domain-specific components covering: User/Client Access, Core Business Logic, Data/State Management, and Background/Integration Processing.
+- ai_accelerators MUST be chosen based on the actual stack and phase.
+- Keep total output under 1200 tokens. Output valid JSON only. No markdown. No text outside JSON.
+"""
+
+BESPOKE_ARCHITECT_USER_PROMPT = """Problem Statement: {problem_statement}
+Application Idea: {idea}
+
+TECHNICAL BOUNDARIES (enforced by code engine — do not contradict):
+- Compute: {compute_strategy}
+- Database: {database_paradigm}
+- Hosting: {hosting_tier}
+- Deployment Complexity: {deployment_complexity}
+- Timeline: {time_allowance}
+- Mandatory Platforms: {mandatory_platforms}
+
+Output this exact JSON schema:
+{{
+  "bespoke_title": "Unique descriptive name for this architecture",
+  "bespoke_rationale": "One sentence: why this stack fits this specific application.",
+  "components": [
+    {{
+      "id": "comp-{slug}",
+      "name": "Domain-specific component name",
+      "responsibility": "Specific responsibility for this application",
+      "data_ownership": {{
+        "storage": "PostgreSQL | Redis | Supabase | etc.",
+        "schema_tables": ["table1", "table2"]
+      }}
+    }}
+  ],
+  "deployment_blueprint": "1-2 sentence hosting topology description.",
+  "ai_accelerators": [
+    {{
+      "phase": "Phase name (e.g. UI Prototyping)",
+      "tools": [
+        {{"name": "Tool name", "why": "Why this tool fits this stack and phase"}}
+      ]
+    }}
+  ],
+  "rejected_alternatives": [
+    {{"approach": "What was considered", "reason_rejected": "Why it doesn't fit these constraints"}}
+  ]
+}}"""

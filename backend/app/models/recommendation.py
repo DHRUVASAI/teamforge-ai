@@ -51,6 +51,8 @@ class ArchitectureRecommendation(Base):
     reasoning = Column(Text, nullable=False)
     rejected_alternatives_json = Column(Text, nullable=False, default="[]")
     components_json = Column(Text, nullable=False, default="[]")
+    ai_accelerators_json = Column(Text, nullable=True, default="[]")
+    bespoke_rationale = Column(Text, nullable=True, default=None)
     version = Column(Integer, default=1)
     status = Column(String(50), default="recommended") # recommended, accepted, overridden
     created_at = Column(DateTime, default=utc_now)
@@ -78,6 +80,17 @@ class ArchitectureRecommendation(Base):
     @components.setter
     def components(self, value: list):
         self.components_json = json.dumps(value)
+
+    @property
+    def ai_accelerators(self) -> list:
+        try:
+            return json.loads(self.ai_accelerators_json or "[]")
+        except Exception:
+            return []
+
+    @ai_accelerators.setter
+    def ai_accelerators(self, value: list):
+        self.ai_accelerators_json = json.dumps(value)
 
 class DataArchitectureRecommendation(Base):
     __tablename__ = "data_architecture_recommendations"

@@ -1,4 +1,4 @@
-﻿from typing import List, Optional, Dict, Any
+from typing import List, Optional, Dict, Any
 from datetime import datetime
 from pydantic import BaseModel, Field
 
@@ -6,6 +6,7 @@ class RejectedAlternativeSchema(BaseModel):
     option: Optional[str] = None
     model: Optional[str] = None
     tier: Optional[str] = None
+    approach: Optional[str] = None
     reason_rejected: str
 
 class SDLCRecommendationOut(BaseModel):
@@ -29,14 +30,24 @@ class ArchitectureComponentSchema(BaseModel):
     responsibility: str
     data_ownership: ComponentDataOwnershipSchema
 
+class AiAcceleratorToolSchema(BaseModel):
+    name: str
+    why: str
+
+class AiAcceleratorPhaseSchema(BaseModel):
+    phase: str
+    tools: List[AiAcceleratorToolSchema]
+
 class ArchitectureRecommendationOut(BaseModel):
     recommendation_id: str
     project_id: str
     tier: str
+    bespoke_rationale: Optional[str] = None
     deployment_recommendation: str
     reasoning: str
     rejected_alternatives: List[Dict[str, Any]]
     components: List[ArchitectureComponentSchema]
+    ai_accelerators: Optional[List[Dict[str, Any]]] = []
     version: int
     status: str
     created_at: datetime

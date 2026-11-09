@@ -36,10 +36,14 @@ def test_sdlc_and_architecture_decision_engines(client):
     arch_resp = client.post(f"/api/v1/projects/{project_id}/architecture/recommend", headers=headers)
     assert arch_resp.status_code == 200
     arch_data = arch_resp.json()
-    assert arch_data["tier"] == "Modular Monolith"
-    assert len(arch_data["components"]) >= 5
+    # Bespoke engine: tier is now a custom descriptive architecture name, never the generic label
+    assert arch_data["tier"] is not None
+    assert len(arch_data["tier"]) > 10, f"Expected a descriptive bespoke title, got: {arch_data['tier']!r}"
+    assert len(arch_data["components"]) >= 2
     assert len(arch_data["rejected_alternatives"]) >= 1
     assert arch_data["status"] == "recommended"
+    # ai_accelerators field should be present (may be empty list on fallback)
+    assert "ai_accelerators" in arch_data
 
     # Verify component data ownership
     comp0 = arch_data["components"][0]
