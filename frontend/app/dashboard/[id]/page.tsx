@@ -565,8 +565,10 @@ export default function MissionDetail() {
                 <div style={{
                   marginTop: "24px",
                   background: "white",
-                  border: `2px solid ${selected.agentColor}`,
                   borderTop: `4px solid ${selected.agentColor}`,
+                  borderRight: `2px solid ${selected.agentColor}`,
+                  borderBottom: `2px solid ${selected.agentColor}`,
+                  borderLeft: `2px solid ${selected.agentColor}`,
                   padding: "32px 40px",
                   display: "grid",
                   gridTemplateColumns: "1fr 1fr",

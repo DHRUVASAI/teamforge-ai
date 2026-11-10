@@ -467,7 +467,9 @@ export default function MermaidDiagram({
                       className="node-hover-card"
                       style={{
                         background: isSelected ? "#110E2E" : "#091326",
-                        border: `2px solid ${isSelected ? "#CC0066" : "#1E3A5F"}`,
+                        borderTop: `2px solid ${isSelected ? "#CC0066" : "#1E3A5F"}`,
+                        borderRight: `2px solid ${isSelected ? "#CC0066" : "#1E3A5F"}`,
+                        borderBottom: `2px solid ${isSelected ? "#CC0066" : "#1E3A5F"}`,
                         borderLeft: `5px solid ${isSelected ? "#38BDF8" : "#CC0066"}`,
                         padding: "14px 16px",
                         cursor: "pointer",

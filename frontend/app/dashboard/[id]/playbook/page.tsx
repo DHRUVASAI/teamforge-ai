@@ -230,7 +230,15 @@ export default function PlaybookPage() {
                   </div>
                   <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '16px' }}>
                     {arch.components.map((comp: any, cIdx: number) => (
-                      <div key={cIdx} style={{ background: '#FFFFFF', border: '1px solid #CBD5E1', borderTop: '3px solid #CC0066', padding: '16px', boxShadow: '2px 2px 0 #E2E8F0' }}>
+                      <div key={cIdx} style={{ 
+                        background: '#FFFFFF', 
+                        borderTop: '3px solid #CC0066', 
+                        borderRight: '1px solid #CBD5E1', 
+                        borderBottom: '1px solid #CBD5E1', 
+                        borderLeft: '1px solid #CBD5E1', 
+                        padding: '16px', 
+                        boxShadow: '2px 2px 0 #E2E8F0' 
+                      }}>
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '8px' }}>
                           <span style={{ fontFamily: 'JetBrains Mono', fontSize: '12px', fontWeight: 'bold', color: '#001133' }}>{comp.name}</span>
                           {comp.data_ownership?.storage && (
@@ -294,11 +302,12 @@ export default function PlaybookPage() {
                         const isDone = completedSteps[stepKey];
                         return (
                           <div key={stepIdx} className="hover-lift" style={{ 
+                            borderTop: '1px solid #e2e8f0',
+                            borderRight: '1px solid #e2e8f0',
+                            borderBottom: '1px solid #e2e8f0',
                             borderLeft: `4px solid ${isDone ? '#22c55e' : '#0066CC'}`, 
                             padding: '16px 24px',
                             background: isDone ? '#f0fdf4' : 'white',
-                            border: '1px solid #e2e8f0',
-                            borderLeftWidth: '4px',
                             transition: 'all 0.3s',
                             opacity: isDone ? 0.7 : 1
                           }}>
