@@ -212,7 +212,13 @@ export default function PlaybookPage() {
               {/* Visual Mermaid Architecture Diagram */}
               {arch?.diagram_mermaid && (
                 <div style={{ marginBottom: '32px' }}>
-                  <MermaidDiagram code={arch.diagram_mermaid} title={arch.tier} />
+                  <MermaidDiagram
+                    code={arch.diagram_mermaid}
+                    title={arch.tier}
+                    components={arch.components}
+                    deploymentRecommendation={arch.deployment_recommendation}
+                    bespokeRationale={arch.bespoke_rationale}
+                  />
                 </div>
               )}
 
